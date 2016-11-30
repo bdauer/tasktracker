@@ -1,9 +1,22 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Q
+from django.utils import timezone
+from django.views import generic
 
-# Create your views here.
+from .models import Task
 
+
+
+class IndexView(generic.ListView):
+    template_name = 'tracktasks/index.html'
+    context_object_name = 'daily_tasks_list'
+
+    def get_queryset(self):
+        """
+        Return all tasks, will later return daily tasks.
+        """
+        return Task.is_scheduled_for(timezone.now())
 
 def index(request):
     return HttpResponse("Hello, world.")

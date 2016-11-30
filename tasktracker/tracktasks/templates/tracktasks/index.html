@@ -1,0 +1,11 @@
+
+
+{% if daily_tasks_list %}
+    <ul>
+        {% for task in daily_tasks_list %}
+            <li>{{ task.name }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>There are no remaining tasks for today!</p>
+{% endif %}
