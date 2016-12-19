@@ -45,9 +45,10 @@ def mark_task_complete(request):
             task.start_time = timezone.now()
 
         elif "stop_timer" in request.POST:
-            task.remaining_time = task.start_time - timezone.now()
+            elapsed_time = timezone.now() - task.start_time
+            task.remaining_time -= elapsed_time
 
-            if task.remaining_time <= datetime.timedelta(0):
+            if task.remaining_time.days < 0:
                 task.is_completed = True
 
             task.start_time = None
@@ -70,7 +71,7 @@ def mark_task_complete(request):
     #
     # template_vars = {'form': form}
     # return render(request, 'tracktasks/index.html', template_vars)
-    return HttpResponse(request.POST)
+    return HttpResponse(task.remaining_time.days)
 
 # def index(request):
 #     return HttpResponse("Hello, world.")
