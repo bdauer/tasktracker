@@ -1,11 +1,16 @@
-
-
+<!-- should delete and then redirect back to this page  -->
+<!-- will need to add logic to display different types of buttons depending
+on the situation, e.g. is it a timed event? Has it begun? Is the task complete?  -->
 {% if daily_tasks_list %}
+    <form method="POST" action="marktaskcomplete/">
+        {% csrf_token %}
     <ul>
         {% for task in daily_tasks_list %}
-            <li>{{ task.name }}</li>
+            <input type="hidden" value="{{ task.id }}" name="selected_task">
+            <li>{{ task.name }} <button type="submit" >completed</button></li>
         {% endfor %}
     </ul>
+    </form>
 {% else %}
     <p>There are no remaining tasks for today!</p>
 {% endif %}
