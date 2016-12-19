@@ -39,6 +39,9 @@ class Task(models.Model):
     due_datetime =\
         models.DateTimeField('due date', null=True, blank=True)
 
+
+    is_timed = models.BooleanField(default=False)
+
     # The following fields only apply to timed events.
     # start_time is recorded at the start of a task. When the time is stopped,
     # the total difference is subtracted from remaining_time. When it is
