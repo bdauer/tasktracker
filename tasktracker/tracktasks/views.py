@@ -1,9 +1,12 @@
+import datetime
+
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.db.models import Q
 from django.utils import timezone
 from django.views import generic
 from django.urls import reverse
+
 
 
 from .models import Task
@@ -33,13 +36,23 @@ def mark_task_complete(request):
     if request.method == 'POST' and 'selected_task' in request.POST:
 
         task_id = request.POST['selected_task']
-
         task = Task.objects.get(pk=task_id)
-        task.is_completed = True
+
+        if "completed" in request.POST:
+            task.is_completed = True
+
+        elif "start_timer" in request.POST:
+            task.start_time = timezone.now()
+
+        elif "stop_timer" in request.POST:
+            task.remaining_time = task.start_time - timezone.now()
+
+            if task.remaining_time <= datetime.timedelta(0):
+                task.is_completed = True
+
+            task.start_time = None
+
         task.save()
-
-
-
 
     # logger.info("hello")
     # task_id = request.object.task.id
@@ -57,7 +70,7 @@ def mark_task_complete(request):
     #
     # template_vars = {'form': form}
     # return render(request, 'tracktasks/index.html', template_vars)
-        return HttpResponse(task.is_completed)
+    return HttpResponse(request.POST)
 
 # def index(request):
 #     return HttpResponse("Hello, world.")
