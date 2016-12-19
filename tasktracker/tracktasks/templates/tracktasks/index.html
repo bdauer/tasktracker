@@ -2,6 +2,7 @@
 <!-- will need to add logic to display different types of buttons depending
 on the situation, e.g. is it a timed event? Has it begun? Is the task complete?  -->
 {% if daily_tasks_list %}
+    <h2>tasks for today</h2>
     <!-- <form method="POST" action="marktaskcomplete/">
         {% csrf_token %} -->
     <ul>
@@ -29,4 +30,12 @@ on the situation, e.g. is it a timed event? Has it begun? Is the task complete? 
     <!-- </form> -->
 {% else %}
     <p>There are no remaining tasks for today!</p>
+{% endif %}
+<br />
+{% if completed_tasks_list %}
+    <h2>completed tasks</h2>
+    <ul>
+        {% for task in completed_tasks_list %}
+            <li>{{  task.name  }}</li>
+        {% endfor %}
 {% endif %}

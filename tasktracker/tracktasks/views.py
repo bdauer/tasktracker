@@ -19,16 +19,15 @@ logger = logging.getLogger(__name__)
 
 class IndexView(generic.ListView):
     template_name = 'tracktasks/index.html'
-    context_object_name = 'daily_tasks_list'
+    model = Task
+    # context_object_name = 'daily_tasks_list'
 
-    def get_queryset(self):
-        """
-        Return all tasks, will later return daily tasks.
-        """
-        return Task.is_scheduled_for(timezone.now()).filter(is_completed=False)
 
-        # next step is to filter by completed tasks.
-
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['completed_tasks_list'] = Task.is_scheduled_for(timezone.now()).filter(is_completed=True)
+        data['daily_tasks_list'] = Task.is_scheduled_for(timezone.now()).filter(is_completed=False)
+        return data
 
 
 def mark_task_complete(request):
