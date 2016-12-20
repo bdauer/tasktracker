@@ -68,12 +68,21 @@ class Task(models.Model):
     def __str__(self):
         return self.name
 
-    def is_scheduled_for(datetime):
+    def is_scheduled_for(datetime, completed=False):
         """
         Return the tasks scheduled for the datetime provided.
+        completed: indicates whether to return completed or unfinished tasks.
         """
-        return Task.objects.filter(
-            scheduled_datetime__date=datetime).order_by('scheduled_datetime')
+        if completed:
+            return Task.objects.filter(
+                scheduled_datetime__date=datetime)\
+                .order_by('scheduled_datetime')\
+                .filter(is_completed=True)
+        elif not completed:
+            return Task.objects.filter(
+                scheduled_datetime__date=datetime)\
+                .order_by('scheduled_datetime')\
+                .filter(is_completed=False)
 
     def is_still_due(datetime):
         """
@@ -81,4 +90,14 @@ class Task(models.Model):
         """
         return Task.objects.filter(
             Q(due_datetime__isnull=False) & Q(due_datetime__gte=datetime))\
-                .filter(recurring='N').order_by('due_datetime')
+                .filter(recurring='N', is_completed=False)\
+                .order_by('due_datetime')
+
+    def is_overdue(datetime):
+        """
+        Return all past due tasks.
+        """
+        return Task.objects.filter(
+            Q(scheduled_datetime__lte=datetime) |
+            Q(due_datetime__lte=datetime) &
+            Q(is_completed=False))
