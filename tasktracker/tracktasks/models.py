@@ -75,16 +75,10 @@ class Task(models.Model):
         return Task.objects.filter(
             scheduled_datetime__date=datetime).order_by('scheduled_datetime')
 
-    def is_still_due(before=None):
+    def is_still_due(datetime):
         """
-        Return the tasks due after today.
-        Before is a timedelta, returns only within that range from today.
+        Return the non-recurring tasks due after the datetime provided.
         """
-        if not before:
-            return Task.objects.filter(
-                due_datetime__isnull=False).order_by('due_datetime')
-
-        before_date = datetime.timezone.now() + before
         return Task.objects.filter(
-            Q(due_datetime__isnull=False) & Q(due_datetime__lte=before_date))\
-                .order_by('due_datetime')
+            Q(due_datetime__isnull=False) & Q(due_datetime__gte=datetime))\
+                .filter(recurring='N').order_by('due_datetime')
