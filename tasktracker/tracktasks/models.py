@@ -27,7 +27,9 @@ class Task(models.Model):
     """
     name = models.CharField(max_length=200)
     priority = models.DecimalField(default=0, max_digits=2, decimal_places=0)
+
     is_completed = models.BooleanField(default=False)
+    completed_date = model.DateField(null=True, blank=True)
 
     # Values are used for calculating a score.
     completed_val = models.IntegerField('completed value', default=0)
@@ -68,6 +70,14 @@ class Task(models.Model):
     def __str__(self):
         return self.name
 
+    def complete(self):
+        """
+        Mark a task as complete
+        and set its completed date.
+        """
+        task.is_completed = True
+        task.completed_date = datetime.date.today()
+
     def is_scheduled_for(datetime, completed=False):
         """
         Return the tasks scheduled for the datetime provided.
@@ -83,6 +93,17 @@ class Task(models.Model):
                 scheduled_datetime=datetime)\
                 .order_by('scheduled_datetime')\
                 .filter(is_completed=False)
+
+
+
+    def was_completed_on(date):
+        """
+        Return all tasks completed today.
+        """
+        return Task.objects.filter(
+            completed_date=date)\
+            .filter(is_completed=True)
+        )
 
     def is_still_due(datetime):
         """
