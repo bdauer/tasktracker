@@ -1,4 +1,5 @@
 import datetime
+import calendar
 
 from django.db import models
 from django.db.models import Q
@@ -41,8 +42,8 @@ class Task(models.Model):
     due_datetime =\
         models.DateField('due date', null=True, blank=True)
 
-
     is_timed = models.BooleanField(default=False)
+    total_time = models.DurationField('total time', null=True, blank=True)
 
     # The following fields only apply to timed events.
     # start_time is recorded at the start of a task. When the time is stopped,
@@ -122,3 +123,66 @@ class Task(models.Model):
         return Task.objects.filter(
             (Q(scheduled_datetime__lt=datetime) |
             Q(due_datetime__lt=datetime))).filter(is_completed=False)
+
+    def add_next_recurring_date(self):
+        """
+        create a new recurrance of a recurring task.
+        """
+        new_task = Task()
+        unchanged_fields = [name, priority, completed_val,
+                            not_completed_cost, is_timed, recurring, total_time]
+
+        for field in unchanged_fields:
+            new_task.field = self.field
+
+        if self.scheduled_datetime != None:
+            new_task.scheduled_datetime = _assign_recurring_date(
+                                            self.scheduled_datetime,
+                                            new_task.scheduled_datetime)
+
+        elif self.due_datetime != None:
+            new_task.due_datetime = _assign_recurring_date(
+                                            self.due_datetime,
+                                            new_task.due_datetime)
+
+    def _assign_recurring_date(old_date):
+        """
+        returns the next recurring date.
+
+        In the case of monthly recurring tasks, they happen on the same
+        day of the week, of the same week of the month.
+        """
+        if self.recurring == 'D':
+        new_date = old_date + datetime.timedelta(days=1)
+        elif self.recurring == 'W':
+            new_date = old_date + datetime.timedelta(days=7)
+        elif self.recurring == 'M':
+
+            # deal with end of year issues.
+            if old_date.month == 12:
+                new_month = 1
+                new_year = old_date.year + 1
+            else:
+                new_month = old_date.month + 1
+                new_year = old_date.year
+
+            oldcal = calendar.monthdatescalendar(old_date.year,
+                                                 old_date.month)
+            newcal = calendar.monthdatescalendar(new_year,
+                                                 new_month)
+
+            # get the original week and day numbers
+            for week in oldcal:
+                if old_date in week:
+                    week_num = oldcal.index(week)
+                    day_num = week.index(old_date)
+
+            # assign the new scheduled date.
+            # if it doesn't exist in the next month,
+            # return the same day of the last week of the month.
+            try:
+                new_date = newcal[week_num][day_num]
+
+            except IndexError:
+                new_date = newcal[-1][day_num]
+        return new_date
