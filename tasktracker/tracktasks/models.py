@@ -29,7 +29,7 @@ class Task(models.Model):
     priority = models.DecimalField(default=0, max_digits=2, decimal_places=0)
 
     is_completed = models.BooleanField(default=False)
-    completed_date = model.DateField(null=True, blank=True)
+    completed_date = models.DateField(null=True, blank=True)
 
     # Values are used for calculating a score.
     completed_val = models.IntegerField('completed value', default=0)
@@ -103,7 +103,6 @@ class Task(models.Model):
         return Task.objects.filter(
             completed_date=date)\
             .filter(is_completed=True)
-        )
 
     def is_still_due(datetime):
         """
