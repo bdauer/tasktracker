@@ -27,7 +27,7 @@ class IndexView(generic.ListView):
         data = super().get_context_data(**kwargs)
         data['daily_tasks_list'] = Task.is_scheduled_for(datetime.date.today())
         data['still_due_tasks_list'] = Task.is_still_due(datetime.date.today())
-        data['completed_tasks_list'] = Task.completed_date(datetime.date.today())
+        data['completed_tasks_list'] = Task.was_completed_on(datetime.date.today())
         data['overdue_tasks_list'] = Task.is_overdue(datetime.date.today())
         return data
 
@@ -49,10 +49,10 @@ def mark_task_complete(request):
             elapsed_time = timezone.now() - task.start_time
             task.remaining_time -= elapsed_time
 
+            task.start_time = None
+
             if task.remaining_time.days < 0:
                 task.complete()
-
-            task.start_time = None
 
         task.save()
 
@@ -72,7 +72,7 @@ def mark_task_complete(request):
     #
     # template_vars = {'form': form}
     # return render(request, 'tracktasks/index.html', template_vars)
-    return HttpResponse(task.remaining_time.days)
+    return HttpResponse(task)
 
 def addtask(request):
     return HttpResponse("Hello world?")

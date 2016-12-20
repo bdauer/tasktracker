@@ -75,8 +75,8 @@ class Task(models.Model):
         Mark a task as complete
         and set its completed date.
         """
-        task.is_completed = True
-        task.completed_date = datetime.date.today()
+        self.is_completed = True
+        self.completed_date = datetime.date.today()
 
     def is_scheduled_for(datetime, completed=False):
         """
