@@ -97,7 +97,8 @@ class Task(models.Model):
         """
         Return all past due tasks.
         """
+        # datetime issues coming back to haunt me.
+        # need to change datetime field to date field and deal with the fallout
         return Task.objects.filter(
-            Q(scheduled_datetime__lte=datetime) |
-            Q(due_datetime__lte=datetime) &
-            Q(is_completed=False))
+            (Q(scheduled_datetime__lt=datetime) |
+            Q(due_datetime__lt=datetime))).filter(is_completed=False)
