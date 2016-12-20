@@ -25,11 +25,11 @@ class IndexView(generic.ListView):
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
-        data['daily_tasks_list'] = Task.is_scheduled_for(timezone.now())
-        data['still_due_tasks_list'] = Task.is_still_due(timezone.now())
-        data['completed_tasks_list'] = Task.is_scheduled_for(timezone.now(),\
-                                                             completed=True)
-        data['overdue_tasks_list'] = Task.is_overdue(timezone.now())
+        data['daily_tasks_list'] = Task.is_scheduled_for(datetime.date.today())
+        data['still_due_tasks_list'] = Task.is_still_due(datetime.date.today())
+        data['completed_tasks_list'] =\
+            Task.is_scheduled_for(datetime.date.today(), completed=True)
+        data['overdue_tasks_list'] = Task.is_overdue(datetime.date.today())
         return data
 
 

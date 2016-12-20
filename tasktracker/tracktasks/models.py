@@ -75,12 +75,12 @@ class Task(models.Model):
         """
         if completed:
             return Task.objects.filter(
-                scheduled_datetime__date=datetime)\
+                scheduled_datetime=datetime)\
                 .order_by('scheduled_datetime')\
                 .filter(is_completed=True)
         elif not completed:
             return Task.objects.filter(
-                scheduled_datetime__date=datetime)\
+                scheduled_datetime=datetime)\
                 .order_by('scheduled_datetime')\
                 .filter(is_completed=False)
 
@@ -89,7 +89,7 @@ class Task(models.Model):
         Return the non-recurring tasks due after the datetime provided.
         """
         return Task.objects.filter(
-            Q(due_datetime__isnull=False) & Q(due_datetime__gte=datetime))\
+            Q(due_datetime__isnull=False) & Q(due_datetime__gt=datetime))\
                 .filter(recurring='N', is_completed=False)\
                 .order_by('due_datetime')
 
