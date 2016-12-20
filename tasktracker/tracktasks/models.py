@@ -177,12 +177,30 @@ class Task(models.Model):
                     week_num = oldcal.index(week)
                     day_num = week.index(old_date)
 
-            # assign the new scheduled date.
-            # if it doesn't exist in the next month,
-            # return the same day of the last week of the month.
+            new_date = _get_new_date(new_month, newcal, week_num, day_num)
+
+        return new_date
+
+        def _get_new_date(new_month, newcal, week_num, day_num):
+            """
+            Return the next recurring date.
+
+            Checks that the week isn't out of index.
+            Checks that the month is correct.
+            """
             try:
                 new_date = newcal[week_num][day_num]
-
             except IndexError:
                 new_date = newcal[-1][day_num]
-        return new_date
+                had_index_error = True
+
+            if new_date.month < new_month:
+                new_date = newcal[week_num + 1][day_num]
+
+            elif new_date.month > new_month:
+                if had_index_error:
+                    new_date = newcal[week_num - 2][day_num]
+                else:
+                    new_date = newcal[week_num - 1][day_num]
+
+            return new_date
