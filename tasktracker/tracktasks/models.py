@@ -35,9 +35,9 @@ class Task(models.Model):
 
     # Optional fields. Should include either scheduled or due.
     scheduled_datetime =\
-        models.DateTimeField('scheduled date', null=True, blank=True)
+        models.DateField('scheduled date', null=True, blank=True)
     due_datetime =\
-        models.DateTimeField('due date', null=True, blank=True)
+        models.DateField('due date', null=True, blank=True)
 
 
     is_timed = models.BooleanField(default=False)
