@@ -1,6 +1,7 @@
-<!-- should delete and then redirect back to this page  -->
-<!-- will need to add logic to display different types of buttons depending
-on the situation, e.g. is it a timed event? Has it begun? Is the task complete?  -->
+{% extends "base.html" %}
+
+{% block content %}
+
 {% if daily_tasks_list or still_due_tasks_list or overdue_tasks_list %}
 
     {% if daily_tasks_list %}
@@ -95,3 +96,5 @@ on the situation, e.g. is it a timed event? Has it begun? Is the task complete? 
             <li>{{  task.name  }}</li>
         {% endfor %}
 {% endif %}
+
+{% endblock %}
