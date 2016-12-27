@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.views import generic
 from django.urls import reverse
-
+from django.contrib.auth.decorators import login_required
 
 
 from .models import Task
@@ -14,7 +14,6 @@ from .models import Task
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 class IndexView(generic.ListView):
