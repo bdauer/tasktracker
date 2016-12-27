@@ -4,6 +4,7 @@ import calendar
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 # Opted against inheritance for different types of tasks because
 # it doesn't translate well into a relational model.
@@ -26,6 +27,8 @@ class Task(models.Model):
     anchor_date: used for calculating recurrence. See inline comment.
     recurring: how frequently a task recurs.
     """
+    user = models.ForeignKey(User, null=True)
+
     name = models.CharField(max_length=200)
     priority = models.DecimalField(default=0, max_digits=2, decimal_places=0)
 
