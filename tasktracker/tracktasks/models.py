@@ -144,6 +144,7 @@ class Task(models.Model):
             new_task.due_datetime = _assign_recurring_date(
                                             self.due_datetime,
                                             new_task.due_datetime)
+        new_task.save()
 
     def _assign_recurring_date(old_date):
         """
@@ -170,7 +171,6 @@ class Task(models.Model):
                                                  old_date.month)
             newcal = calendar.monthdatescalendar(new_year,
                                                  new_month)
-
             # get the original week and day numbers
             for week in oldcal:
                 if old_date in week:
@@ -183,7 +183,7 @@ class Task(models.Model):
 
         def _get_new_date(new_month, newcal, week_num, day_num):
             """
-            Return the next recurring date.
+            Return the next recurring date for monthly recurrence.
 
             Checks that the week isn't out of index.
             Checks that the month is correct.
