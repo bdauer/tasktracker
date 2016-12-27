@@ -154,7 +154,7 @@ class Task(models.Model):
         day of the week, of the same week of the month.
         """
         if self.recurring == 'D':
-        new_date = old_date + datetime.timedelta(days=1)
+            new_date = old_date + datetime.timedelta(days=1)
         elif self.recurring == 'W':
             new_date = old_date + datetime.timedelta(days=7)
         elif self.recurring == 'M':
