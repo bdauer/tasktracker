@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth.models import User
 
+
 # Opted against inheritance for different types of tasks because
 # it doesn't translate well into a relational model.
 class Task(models.Model):
@@ -39,11 +40,14 @@ class Task(models.Model):
     completed_val = models.IntegerField('completed value', default=0)
     not_completed_cost = models.IntegerField('not completed value', default=0)
 
-    # Optional fields. Should include either scheduled or due.
-    scheduled_datetime =\
-        models.DateField('scheduled date', null=True, blank=True)
-    due_datetime =\
-        models.DateField('due date', null=True, blank=True)
+    # Because separate scheduled and due dates were leading to repeated,
+    # longer queries I've opted for a date field and a date_type field.
+    DATE_TYPES = (('S', 'scheduled for'),
+                  ('D', 'due by'),
+                 )
+    date_type = models.CharField('date type', max_length=1,
+                                 choices=DATE_TYPES, default='D')
+    date = models.DateField()
 
     is_timed = models.BooleanField(default=False)
     total_time = models.DurationField('total time', null=True, blank=True)
@@ -82,21 +86,21 @@ class Task(models.Model):
         self.is_completed = True
         self.completed_date = datetime.date.today()
 
-    def is_scheduled_for(datetime, completed=False):
+    def is_scheduled_for(date, completed=False):
         """
         Return the tasks scheduled for the datetime provided.
         completed: indicates whether to return completed or unfinished tasks.
         """
         if completed:
             return Task.objects.filter(
-                scheduled_datetime=datetime)\
-                .order_by('scheduled_datetime')\
-                .filter(is_completed=True)
+                date=date)\
+                .order_by('date')\
+                .filter(is_completed=True, date_type='S')
         elif not completed:
             return Task.objects.filter(
-                scheduled_datetime=datetime)\
-                .order_by('scheduled_datetime')\
-                .filter(is_completed=False)
+                date=date)\
+                .order_by('date')\
+                .filter(is_completed=False, date_type='S')
 
 
 
@@ -105,48 +109,38 @@ class Task(models.Model):
         Return all tasks completed today.
         """
         return Task.objects.filter(
-            completed_date=date)\
-            .filter(is_completed=True)
+            date=date)\
+            .filter(is_completed=True, date_type='D')
 
-    def is_still_due(datetime):
+    def is_still_due(date):
         """
         Return the non-recurring tasks due after the datetime provided.
         """
-        return Task.objects.filter(
-            Q(due_datetime__isnull=False) & Q(due_datetime__gt=datetime))\
-                .filter(recurring='N', is_completed=False)\
-                .order_by('due_datetime')
+        return Task.objects.filter(date_type='D', date=date,
+                                  recurring='N', is_completed=False)\
+                                  .order_by('date')
 
-    def is_overdue(datetime):
+    def is_overdue(date):
         """
         Return all past due tasks.
         """
         # datetime issues coming back to haunt me.
         # need to change datetime field to date field and deal with the fallout
-        return Task.objects.filter(
-            (Q(scheduled_datetime__lt=datetime) |
-            Q(due_datetime__lt=datetime))).filter(is_completed=False)
+        return Task.objects.filter(date__lt=date, is_completed=False)
+
 
     def add_next_recurring_date(self):
         """
-        create a new recurrance of a recurring task.
+        create and return a new recurrance of a recurring task.
         """
         new_task = Task()
-        unchanged_fields = [name, priority, completed_val,
-                            not_completed_cost, is_timed, recurring, total_time]
+        unchanged_fields = [name, priority, completed_val, not_completed_cost,
+                            date_type, is_timed, recurring, total_time]
 
         for field in unchanged_fields:
             new_task.field = self.field
 
-        if self.scheduled_datetime != None:
-            new_task.scheduled_datetime = _assign_recurring_date(
-                                            self.scheduled_datetime,
-                                            new_task.scheduled_datetime)
-
-        elif self.due_datetime != None:
-            new_task.due_datetime = _assign_recurring_date(
-                                            self.due_datetime,
-                                            new_task.due_datetime)
+        new_task.date = _assign_recurring_date(self.date, new_task.date)
         new_task.save()
 
     def _assign_recurring_date(old_date):
