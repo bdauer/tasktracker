@@ -143,6 +143,7 @@ class Task(models.Model):
 
         new_task.date = _assign_recurring_date(self.date, new_task.date)
         new_task.save()
+        return new_task
 
     def _assign_recurring_date(old_date):
         """
