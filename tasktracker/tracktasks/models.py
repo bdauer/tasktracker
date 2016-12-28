@@ -69,6 +69,7 @@ class Task(models.Model):
     FREQUENCY = (('N', 'not recurring'),
                  ('D', 'daily'),
                  ('W', 'weekly'),
+                 ('B', 'biweekly'),
                  ('M', 'monthly'),
                 )
     recurring = models.CharField(max_length=1,
@@ -154,6 +155,8 @@ class Task(models.Model):
             new_date = old_date + datetime.timedelta(days=1)
         elif self.recurring == 'W':
             new_date = old_date + datetime.timedelta(days=7)
+        elif self.recurring == 'B':
+            new_date = old_date + datetime.timedelta(days=14)
         elif self.recurring == 'M':
 
             # deal with end of year issues.
