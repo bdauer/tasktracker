@@ -20,8 +20,8 @@ class Task(models.Model):
     completed_val: the value for completing a task.
     not_completed_cost: the cost of failing to complete a task.(positive num)
 
-    scheduled_datetime: a date on which the task must be completed.
-    due_datetime: a date by which a task must be completed.
+    date_type: tells whether the task is scheduled on or due by the date field.
+    date: the date that a task is either scheduled for or due by.
 
     start_time: the time at which a task was started.
     remaining_time: the amount of time required to spend on a task.
