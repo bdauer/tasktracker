@@ -11,7 +11,7 @@
 
     <ul>
         {% for task in daily_tasks_list %}
-            <form method="POST" action="marktaskcomplete/">
+            <form method="POST" action="{% url 'tracktasks:mark complete' %}">
                         {% csrf_token %}
             <li>{{ task.name }}
             <input type="hidden" value="{{ task.id }}" name="selected_task">
@@ -37,7 +37,7 @@
     <h3>tasks due later</h3>
     <ul>
         {% for task in still_due_tasks_list %}
-            <form method="POST" action="marktaskcomplete/">
+            <form method="POST" action="{% url 'tracktasks:mark complete' %}">
                         {% csrf_token %}
             <li>{{ task.name }} is due by {{ task.date|date:"l" }} the {{task.date|date:"tS"}} of {{task.date|date:"N"}}
             <input type="hidden" value="{{ task.id }}" name="selected_task">
@@ -62,7 +62,7 @@
     {% if overdue_tasks_list %}
     <h3>Overdue tasks</h3>
     {% for task in overdue_tasks_list %}
-        <form method="POST" action="marktaskcomplete/">
+        <form method="POST" action="{% url 'tracktasks:mark complete' %}">
                     {% csrf_token %}
         <li>{{ task.name }} was due on {{ task.date|date:"l" }} the {{task.date|date:"tS"}} of {{task.date|date:"N"}}
         <input type="hidden" value="{{ task.id }}" name="selected_task">

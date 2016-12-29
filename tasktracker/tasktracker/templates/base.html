@@ -27,7 +27,7 @@
          {% if user.is_authenticated %}
 
         <p class="navbar-text">Hello, {{ user.get_short_name }}</p>
-        <a href="addtask/" type="button" class="btn btn-default">Add Task</a>
+        <a href="{% url 'tracktasks:create task' %}" type="button" class="btn btn-default">Add Task</a>
         <a href="{% url 'logout' %}" type="button" class="btn btn-default">Log Out</a>
         {% endif %}
     </nav>
