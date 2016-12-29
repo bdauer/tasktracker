@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.http import HttpRequest
 
 
 # Opted against inheritance for different types of tasks because
@@ -87,7 +88,7 @@ class Task(models.Model):
         self.is_completed = True
         self.completed_date = timezone.now()
 
-    def is_scheduled_for(date, completed=False):
+    def is_scheduled_for(request, date, completed=False):
         """
         Return the tasks scheduled for the datetime provided.
         completed: indicates whether to return completed or unfinished tasks.
@@ -96,37 +97,41 @@ class Task(models.Model):
             return Task.objects.filter(
                 date=date)\
                 .order_by('date')\
-                .filter(Q(is_completed=True) & Q(date_type='S'))
+                .filter(Q(is_completed=True) & Q(date_type='S')
+                        & Q(user=request.user))
         elif not completed:
             return Task.objects.filter(
                 date=date)\
                 .order_by('date')\
-                .filter(Q(is_completed=False) & Q(date_type='S'))
+                .filter(Q(is_completed=False) & Q(date_type='S')
+                        & Q(user=request.user))
 
 
 
-    def was_completed_on(date_completed):
+    def was_completed_on(request, date_completed):
         """
         Return all tasks completed today.
         """
         return Task.objects.filter(
-            completed_date=date_completed).filter(is_completed=True)
+            completed_date=date_completed).filter(is_completed=True,
+                                                  user=request.user)
 
-    def is_still_due(duedate):
+    def is_still_due(request, duedate):
         """
         Return the non-recurring tasks due after the datetime provided.
         """
         return Task.objects.filter(date_type='D', date=duedate,
-                                  recurring='N', is_completed=False)\
-                                  .order_by('date')
+                                  recurring='N', is_completed=False,
+                                  user=request.user).order_by('date')
 
-    def is_overdue(duedate):
+    def is_overdue(request, duedate):
         """
         Return all past due tasks.
         """
         # datetime issues coming back to haunt me.
         # need to change datetime field to date field and deal with the fallout
-        return Task.objects.filter(Q(date__lt=duedate) & Q(is_completed=False))
+        return Task.objects.filter(date__lt=duedate, is_completed=False,
+                                   user=request.user).order_by('-date')
 
 
     def add_next_recurring_date(self):
