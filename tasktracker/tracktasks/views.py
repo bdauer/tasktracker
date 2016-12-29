@@ -69,7 +69,7 @@ def mark_task_complete(request):
 
         task.save()
 
-    return HttpResponse(task)
+    return HttpResponseRedirect(reverse('tracktasks:index'))
 
 
 class CreateTaskView(LoginRequiredMixin, generic.CreateView):
