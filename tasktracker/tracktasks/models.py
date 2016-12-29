@@ -120,9 +120,9 @@ class Task(models.Model):
         """
         Return the non-recurring tasks due after the datetime provided.
         """
-        return Task.objects.filter(date_type='D', date=duedate,
-                                  recurring='N', is_completed=False,
-                                  user=request.user).order_by('date')
+        return Task.objects.filter(date_type='D', date__gte=duedate,
+                                   is_completed=False,
+                                   user=request.user).order_by('date')
 
     def is_overdue(request, duedate):
         """
@@ -139,23 +139,27 @@ class Task(models.Model):
         create and return a new recurrance of a recurring task.
         """
         new_task = Task()
-        unchanged_fields = [name, priority, completed_val, not_completed_cost,
-                            date_type, is_timed, recurring, total_time]
+        unchanged_fields = ['name', 'priority', 'completed_val',
+                            'not_completed_cost', 'date_type',
+                            'is_timed', 'recurring', 'total_time']
 
         for field in unchanged_fields:
-            new_task.field = self.field
+            old_field_value = getattr(self, field)
+            setattr(new_task, field, old_field_value)
 
-        new_task.date = _assign_recurring_date(self.date, new_task.date)
+        new_task.date = self._assign_recurring_date()
         new_task.save()
         return new_task
 
-    def _assign_recurring_date(old_date):
+    def _assign_recurring_date(self):
         """
         returns the next recurring date.
 
         In the case of monthly recurring tasks, they happen on the same
         day of the week, of the same week of the month.
         """
+        old_date = self.date
+
         if self.recurring == 'D':
             new_date = old_date + datetime.timedelta(days=1)
         elif self.recurring == 'W':
@@ -192,20 +196,29 @@ class Task(models.Model):
 
             Checks that the week isn't out of index.
             Checks that the month is correct.
+
+            params:
+            new_month: the numeric value of the new task's month.
+            newcal: a monthdatescalendar object for the new month.
+            week_num: the original week number.
+            day_num: the original number for the day of the week.
             """
             try:
                 new_date = newcal[week_num][day_num]
+            # the error can happen
+            # when the number of weeks differs
+            # between the old and new month.
             except IndexError:
-                new_date = newcal[-1][day_num]
-                had_index_error = True
+                week_num -= 1
+                new_date = newcal[week_num][day_num]
 
+            # Because the monthdatescalendar
+            # includes a week from the preceding and following month:
+            # ensure we're looking at the correct month.
             if new_date.month < new_month:
                 new_date = newcal[week_num + 1][day_num]
 
             elif new_date.month > new_month:
-                if had_index_error:
-                    new_date = newcal[week_num - 2][day_num]
-                else:
-                    new_date = newcal[week_num - 1][day_num]
+                new_date = newcal[week_num - 1][day_num]
 
             return new_date
