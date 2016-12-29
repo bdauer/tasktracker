@@ -84,4 +84,5 @@ class CreateTaskView(LoginRequiredMixin, generic.CreateView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        form.instance.remaining_time = form.instance.total_time
         return super(CreateTaskView, self).form_valid(form)
