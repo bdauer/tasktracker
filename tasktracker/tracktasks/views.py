@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.core.urlresolvers import reverse_lazy
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
 from .forms import CreateTaskForm
 
@@ -20,14 +21,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class IndexView(generic.ListView):
+class IndexView(LoginRequiredMixin, generic.ListView):
     template_name = 'tracktasks/index.html'
     model = Task
     # context_object_name = 'daily_tasks_list'
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(IndexView, self).dispatch(*args, **kwargs)
+    # @method_decorator(login_required)
+    # def dispatch(self, *args, **kwargs):
+    #     return super(IndexView, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
@@ -81,7 +82,7 @@ def mark_task_complete(request):
     return HttpResponse(task)
 
 
-class CreateTaskView(generic.CreateView):
+class CreateTaskView(LoginRequiredMixin, generic.CreateView):
     form_class = CreateTaskForm
     template_name = 'tracktasks/createtask.html'
 
@@ -94,9 +95,9 @@ class CreateTaskView(generic.CreateView):
         form.instance.user = self.request.user
         return super(CreateTaskView, self).form_valid(form)
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(CreateTaskView, self).dispatch(*args, **kwargs)
+    # @method_decorator(login_required)
+    # def dispatch(self, *args, **kwargs):
+    #     return super(CreateTaskView, self).dispatch(*args, **kwargs)
 
 
 
