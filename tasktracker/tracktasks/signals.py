@@ -1,4 +1,5 @@
 from django.utils import timezone
+import datetime
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
@@ -17,15 +18,36 @@ def update_recurring_tasks(sender, request, user, **kwargs):
     queryset_to_repeat = Task.objects.filter(date__lte=timezone.now(),
                         date__gt=user.profile.most_recent_login,
                         user=user).exclude(recurring="N")
-    tasks_to_repeat = queryset_to_repeat.values()
+
+    list_to_repeat = []
 
     # go over the lists, creating new recurring tasks,
     # one recurrence beyond today
-    for task in tasks_to_repeat:
+    for task in queryset_to_repeat:
 
-        if task.date <= timezone.now():
+        if task.date <= datetime.date.today():
             next_task = task.add_next_recurring_date()
-            tasks_to_repeat.append(next_task)
+            list_to_repeat.append(next_task)
+
+    for task in list_to_repeat:
+
+        if task.date <= datetime.date.today():
+            next_task = task.add_next_recurring_date()
+            list_to_repeat.append()
+
+    # def _repeat_and_append(task, list_to_repeat):
+    #     """
+    #     Return the list_to_repeat list.
+    #
+    #     Check if the task's date is less than or equal to today.
+    #     If it is, create a new task.
+    #     Append the new task to the list_to_repeat list.
+    #     """
+    #
+    #     if task.date <= timezone.now():
+    #         next_task = task.add_next_recurring_date()
+    #         list_to_repeat.append(next_task)
+    #         return (list_to_repeat)
 
 
 
