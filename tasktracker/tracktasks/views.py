@@ -22,13 +22,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 class IndexView(LoginRequiredMixin, generic.ListView):
+    """
+    Shows all of today's tasks.
+    """
     template_name = 'tracktasks/index.html'
     model = Task
-    # context_object_name = 'daily_tasks_list'
-
-    # @method_decorator(login_required)
-    # def dispatch(self, *args, **kwargs):
-    #     return super(IndexView, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
@@ -44,6 +42,10 @@ class IndexView(LoginRequiredMixin, generic.ListView):
 
 @login_required
 def mark_task_complete(request):
+    """
+    Mark a task complete, start a timer or stop a timer.
+    Probably will move the latter two out later.
+    """
 
     if request.method == 'POST' and 'selected_task' in request.POST:
 
@@ -67,50 +69,19 @@ def mark_task_complete(request):
 
         task.save()
 
-    # logger.info("hello")
-    # task_id = request.object.task.id
-    #
-    # completed_task = get_object_or_404(Task, id=task_id)
-    #
-    # form = DeleteTaskForm(request.POST, instance=completed_task)
-    #
-    # if form.is_valid():
-    #     completed_task.is_completed = True
-    #     completed_task.save()
-    #     return HttpResponseRedirect('/tracktasks/')
-    # else:
-    #     form = DeleteTaskForm(instance=new_to_delete)
-    #
-    # template_vars = {'form': form}
-    # return render(request, 'tracktasks/index.html', template_vars)
     return HttpResponse(task)
 
 
 class CreateTaskView(LoginRequiredMixin, generic.CreateView):
+    """
+    Create a new task.
+    """
     form_class = CreateTaskForm
     template_name = 'tracktasks/createtask.html'
 
     def get_success_url(self):
         return reverse_lazy('tracktasks:index')
 
-    # success_url = 'tracktasks:index'
-
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super(CreateTaskView, self).form_valid(form)
-
-    # @method_decorator(login_required)
-    # def dispatch(self, *args, **kwargs):
-    #     return super(CreateTaskView, self).dispatch(*args, **kwargs)
-
-
-
-
-# def addtask(request):
-#     if request.method == 'GET':
-#         form = CreateTaskForm()
-#     elif request.method == 'POST':
-#         form = CreateTaskForm(request.POST)
-#         if form.is_valid():
-#             return render(form.cleaned_data)
-#     return render(request, 'tracktasks/addtask.html', {form: 'form'})
