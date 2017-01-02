@@ -13,48 +13,38 @@ def update_recurring_tasks(sender, request, user, **kwargs):
     beyond today.
     """
 
-    # get all tasks from last login until today where the user is the
-    # current user and recurring is not none.
-    queryset_to_repeat = Task.objects.filter(date__lte=timezone.now(),
-                        date__gt=user.profile.most_recent_login,
-                        user=user).exclude(recurring="N")
+    # only run if the user hasn't logged in for a week.
+    # these are users whose tasks aren't regularly updating to save space.
+    if user.profile.most_recent_login <\
+    datetime.date.today() - datetime.timedelta(days=7):
 
-    list_to_repeat = []
+        # get all tasks from last login until today where the user is the
+        # current user and recurring is not none.
+        queryset_to_repeat = Task.objects.filter(date__lte=timezone.now(),
+                            date__gt=user.profile.most_recent_login,
+                            user=user).exclude(recurring="N")
 
-    # go over the lists, creating new recurring tasks,
-    # one recurrence beyond today
-    for task in queryset_to_repeat:
+        list_to_repeat = []
 
-        if task.date <= datetime.date.today():
-            next_task = task.add_next_recurring_date()
-            list_to_repeat.append(next_task)
+        # go over the lists, creating new recurring tasks,
+        # one recurrence beyond today
+        for task in queryset_to_repeat:
 
-    for task in list_to_repeat:
+            if task.date <= datetime.date.today():
+                next_task = task.add_next_recurring_date()
+                list_to_repeat.append(next_task)
 
-        if task.date <= datetime.date.today():
-            next_task = task.add_next_recurring_date()
-            list_to_repeat.append()
+        for task in list_to_repeat:
 
-    # def _repeat_and_append(task, list_to_repeat):
-    #     """
-    #     Return the list_to_repeat list.
-    #
-    #     Check if the task's date is less than or equal to today.
-    #     If it is, create a new task.
-    #     Append the new task to the list_to_repeat list.
-    #     """
-    #
-    #     if task.date <= timezone.now():
-    #         next_task = task.add_next_recurring_date()
-    #         list_to_repeat.append(next_task)
-    #         return (list_to_repeat)
+            if task.date <= datetime.date.today():
+                next_task = task.add_next_recurring_date()
+                list_to_repeat.append()
 
-
-
-
-    # for every task created
-    # if the date of the task is before or on today,
-    # add_next_recurring_date of the task
-    # and add that task to the list.
-
-    # if the date of the task is after today, don't do anything.
+# @receiver(post_init)
+# def add_recurring_instance(sender, instance, args, **kwargs):
+#     """
+#     Create the next instance of a task upon its creation.
+#     """
+#     # this should only be triggered when a new task is created using the
+#     # CreateTaskForm
+#     # may need custom signal
