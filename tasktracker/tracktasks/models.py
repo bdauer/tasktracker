@@ -76,6 +76,8 @@ class Task(models.Model):
     recurring = models.CharField(max_length=1,
                                  choices=FREQUENCY,
                                  default='N')
+    # for recurring tasks.
+    is_most_recent = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
