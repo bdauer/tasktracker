@@ -24,9 +24,13 @@ def update_recurring_tasks(sender, request, user, **kwargs):
                             date__gt=user.profile.most_recent_login,
                             user=user).exclude(recurring="N")
 
+        # tasks get appended here because
+        # can't append to a queryset.
+        # Acts as a queue.
         list_to_repeat = []
 
-        # go over the lists, creating new recurring tasks,
+        # go over the lists, creating new recurring tasks
+        # from last login through
         # one recurrence beyond today
         for task in queryset_to_repeat:
 
@@ -39,12 +43,3 @@ def update_recurring_tasks(sender, request, user, **kwargs):
             if task.date <= datetime.date.today():
                 next_task = task.add_next_recurring_date()
                 list_to_repeat.append()
-
-# @receiver(post_init)
-# def add_recurring_instance(sender, instance, args, **kwargs):
-#     """
-#     Create the next instance of a task upon its creation.
-#     """
-#     # this should only be triggered when a new task is created using the
-#     # CreateTaskForm
-#     # may need custom signal
