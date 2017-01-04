@@ -143,7 +143,7 @@ class Task(models.Model):
         new_task = Task()
         unchanged_fields = ['name', 'priority', 'completed_val',
                             'not_completed_cost', 'date_type',
-                            'is_timed', 'recurring', 'total_time']
+                            'is_timed', 'recurring', 'total_time', 'user','remaining_time']
 
         for field in unchanged_fields:
             old_field_value = getattr(self, field)
