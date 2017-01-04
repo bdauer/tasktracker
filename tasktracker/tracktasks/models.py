@@ -108,8 +108,6 @@ class Task(models.Model):
                 .filter(Q(is_completed=False) & Q(date_type='S')
                         & Q(user=request.user))
 
-
-
     def was_completed_on(request, date_completed):
         """
         Return all tasks completed today.
@@ -135,6 +133,27 @@ class Task(models.Model):
         return Task.objects.filter(date__lt=duedate, is_completed=False,
                                    user=request.user).order_by('-date')
 
+    def create_daily_recurring_tasks():
+        """
+        Create a new recurrence
+        for all most recent recurring tasks
+        that happen tomorrow.
+
+        This function should be run daily.
+
+        It checks for tomorrow to avoid timezone conflicts
+        for those whose time zone is near the update time.
+        """
+
+        active_user_date = timezone.now() - datetime.timedelta(days=7)
+        date_to_check = datetime.date.today() + datetime.timedelta(days=1)
+
+        queryset_to_repeat = Task.objects.filter(date__exact=date_to_check,
+                            user.profile.most_recent_login__gte=active_user_date,
+                            is_most_recent=True).exclude(recurring="N")
+
+        for task in queryset_to_repeat:
+            task.add_next_recurring_date()
 
     def add_next_recurring_date(self):
         """
