@@ -10,6 +10,8 @@ from django.http import HttpRequest
 
 # Opted against inheritance for different types of tasks because
 # it doesn't translate well into a relational model.
+# might consider a one-to-one relationship for dealing with:
+# timed and recurring tasks.
 class Task(models.Model):
     """
     Represents a to-do task.
