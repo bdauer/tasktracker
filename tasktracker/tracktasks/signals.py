@@ -9,8 +9,10 @@ from tracktasks.models import Task
 @receiver(user_logged_in)
 def update_recurring_tasks(sender, request, user, **kwargs):
     """
-    Create recurring tasks for user from their last login through one
-    beyond today.
+    When an inactive user logs in,
+    update recurring tasks
+    from their last login
+    through one beyond today.
     """
 
     # only run if the user hasn't logged in for a week.
