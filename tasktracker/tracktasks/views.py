@@ -83,11 +83,11 @@ class CreateTaskView(LoginRequiredMixin, generic.CreateView):
         return reverse_lazy('tracktasks:index')
 
     def form_valid(self, form):
-
         form.instance.user = self.request.user
         form.instance.remaining_time = form.instance.total_time
-        # add next recurrence
-        first_task = form.save(commit=False)
-        Task.add_next_recurring_date(first_task)
+        # add next recurrence for recurring tasks.
+        if form.instance.recurring != 'N':
+            first_task = form.save(commit=False)
+            Task.add_next_recurring_date(first_task)
 
         return super(CreateTaskView, self).form_valid(form)

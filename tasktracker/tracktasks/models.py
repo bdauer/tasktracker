@@ -151,7 +151,8 @@ class Task(models.Model):
         date_to_check = datetime.date.today() + datetime.timedelta(days=1)
 
         queryset_to_repeat = Task.objects.filter(date__exact=date_to_check,
-                            user.profile.most_recent_login__gte=active_user_date,
+                            user__profile__most_recent_login__gte=\
+                            active_user_date,
                             is_most_recent=True).exclude(recurring="N")
 
         for task in queryset_to_repeat:
