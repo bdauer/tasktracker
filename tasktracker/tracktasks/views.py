@@ -84,7 +84,9 @@ class CreateTaskView(LoginRequiredMixin, generic.CreateView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        form.instance.total_time *=60
         form.instance.remaining_time = form.instance.total_time
+
         # add next recurrence for recurring tasks.
         if form.instance.recurring != 'N':
             first_task = form.save(commit=False)
