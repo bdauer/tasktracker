@@ -27,6 +27,7 @@
      {% url 'tracktasks:index' as index %}
      {% url 'tracktasks:create task' as create_task %}
      {% url 'logout' as logout %}
+      {% url 'login' as login %}
      <nav class="navbar navbar-inverse">
         {% if user.is_authenticated %}
 
@@ -41,6 +42,8 @@
             {% if request.get_full_path != logout %}
                 <a href="{{ logout }}" type="button" class="btn btn-default">Log Out</a>
             {% endif %}
+        {% else %}
+            <a href="{{ login }}" type="button" class="btn btn-default">Log In</a>
         {% endif %}
     </nav>
 
