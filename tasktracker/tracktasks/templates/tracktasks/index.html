@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+{% load timedelta_filter %}
 {% if daily_tasks_list or still_due_tasks_list or overdue_tasks_list %}
 
     {% if daily_tasks_list %}
@@ -17,7 +17,7 @@
             <input type="hidden" value="{{ task.id }}" name="selected_task">
 
                 {% if task.is_timed %}
-                 remaining time: {{ task.remaining_time }}
+                 remaining time: {{ task.remaining_time|format_timedelta }}
                     {% if task.start_time is None %}
                         <button type="submit" name="start_timer">Start activity</button>
                      {% elif task.start_time is not None %}
@@ -43,7 +43,7 @@
             <input type="hidden" value="{{ task.id }}" name="selected_task">
 
                 {% if task.is_timed %}
-                 remaining time: {{ task.remaining_time }}
+                 remaining time: {{ task.remaining_time|format_timedelta }}
                     {% if task.start_time is None %}
                         <button type="submit" name="start_timer">Start activity</button>
                      {% elif task.start_time is not None %}
@@ -61,6 +61,7 @@
 
     {% if overdue_tasks_list %}
     <h3>Overdue tasks</h3>
+    <ul>
     {% for task in overdue_tasks_list %}
         <form method="POST" action="{% url 'tracktasks:mark complete' %}">
                     {% csrf_token %}
@@ -68,7 +69,7 @@
         <input type="hidden" value="{{ task.id }}" name="selected_task">
 
             {% if task.is_timed %}
-             remaining time: {{ task.remaining_time }}
+             remaining time: {{ task.remaining_time|format_timedelta }}
                 {% if task.start_time is None %}
                     <button type="submit" name="start_timer">Start activity</button>
                  {% elif task.start_time is not None %}
@@ -81,8 +82,7 @@
         </li>
     </form>
     {% endfor %}
-
-
+    </ul>
     {% endif %}
 
 {% else %}
