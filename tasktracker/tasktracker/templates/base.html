@@ -24,13 +24,23 @@
 
 
 
-
+     {% url 'tracktasks:index' as index %}
+     {% url 'tracktasks:create task' as create_task %}
+     {% url 'logout' as logout %}
      <nav class="navbar navbar-inverse">
-         {% if user.is_authenticated %}
+        {% if user.is_authenticated %}
 
         <p class="navbar-text">Hello, {{ user.get_short_name }}</p>
-        <a href="{% url 'tracktasks:create task' %}" type="button" class="btn btn-default">Add Task</a>
-        <a href="{% url 'logout' %}" type="button" class="btn btn-default">Log Out</a>
+
+            {% if request.get_full_path != index %}
+                <a href="{{ index }}" type="button" class="btn btn-default">Today's Tasks</a>
+            {% endif %}
+            {% if request.get_full_path != create_task %}
+                <a href="{{ create_task }}" type="button" class="btn btn-default">Add Task</a>
+            {% endif %}
+            {% if request.get_full_path != logout %}
+                <a href="{{ logout }}" type="button" class="btn btn-default">Log Out</a>
+            {% endif %}
         {% endif %}
     </nav>
 
