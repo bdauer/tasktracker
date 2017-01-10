@@ -1,16 +1,13 @@
 
-
-
 /*
 This function sets up all of the timer buttons
 to find their respective counters when clicked.
-Adding event listeners on iteration informed by:
-http://stackoverflow.com/a/8909792
 */
 function prepareTimerListeners() {
   var startbuttons = document.querySelectorAll('button[id^="start"]');
   console.log(startbuttons);
-
+  //  Adding event listeners on iteration informed by:
+  //  http://stackoverflow.com/a/8909792
   for (var i = 0, len = startbuttons.length; i < len; i++) {
     var newid = startbuttons[i].id.replace(/^\D+/g, '');
     (function(newid) {
@@ -21,9 +18,15 @@ function prepareTimerListeners() {
   }
 }
 
+/*
+Takes a remaining time value
+in H{d}M{d}S{d} format
+where d is any non-numeric value,
+and H and M are optional,
+and returns the total seconds.
+*/
 function toSeconds(time) {
   timeArray = toTimeArray(time);
-  console.log(timeArray);
   // if only minutes and seconds are present:
   if (timeArray.length === 2) {
   var seconds = timeArray[0];
@@ -38,10 +41,17 @@ function toSeconds(time) {
       parseInt(timeArray[2]);
   }
   return seconds;
-
-
 }
 
+/*
+Takes a time value
+n H{d}M{d}S{d} format
+where d is any non-numeric value,
+and H and M are optional.
+Returns an array
+containing all of those values
+plus an empty string.
+*/
 function toTimeArray(time) {
 	time += "";
 	return time.split(/\D+/);
@@ -85,19 +95,21 @@ function startCounter(newid) {
         timer = new CountDownTimer(seconds),
         timeObj = CountDownTimer.parse(seconds);
 
+      // nested to allow access to display
+      // when iterating over tickFtns
+      // in CountDownTimer.start
+      // without changing the original API.
       function formatTime(hours, minutes, seconds) {
-      console.log(hours + " " + minutes + " " + seconds);
-      // need to test for undefined here
-      if (typeof hours != "undefined") {
-        display.textContent = hours + 'h:' + minutes + 'm:' + seconds + "s";
-        }
-        else if (typeof minutes != "undefined") {
-        	display.textContent = minutes + 'm:' + seconds + "s";
-        }
-        else {
-         display.textContent = seconds + "s";
-        }
-      }
+          if (typeof hours != "undefined") {
+            display.textContent = hours + 'h:' + minutes + 'm:' + seconds + "s";
+            }
+            else if (typeof minutes != "undefined") {
+            	display.textContent = minutes + 'm:' + seconds + "s";
+            }
+            else {
+             display.textContent = seconds + "s";
+            }
+          }
 
       formatTime(timeObj.hours, timeObj.minutes, timeObj.seconds);
       timer.onTick(formatTime);
