@@ -1,21 +1,4 @@
-import CountDownTimer from "countdowntimer";
 
-
-var startID = /start[\d]+/;
-
-var counterID = /time[\d]+/;
-
-countdown = function() {
-    var remainingtime = document.querySelectorAll('span[id^="time"]');
-    var startbuttons = document.querySelectorAll('button[id^="start"]');
-    var stopbuttons = document.querySelectorAll('button[id^="stop"]');
-    return counterID;
-}
-
-
-
-
-document.getElementById(startID).onclick = countdown ();
 
 
 /*
@@ -26,12 +9,13 @@ http://stackoverflow.com/a/8909792
 */
 function prepareTimerListeners() {
   var startbuttons = document.querySelectorAll('button[id^="start"]');
+  console.log(startbuttons);
 
   for (var i = 0, len = startbuttons.length; i < len; i++) {
     var newid = startbuttons[i].id.replace(/^\D+/g, '');
     (function(newid) {
       startbuttons[i].addEventListener('click', function() {
-        findCounter(newid);
+        startCounter(newid);
       });
     })(newid);
   }
@@ -63,14 +47,41 @@ function toTimeArray(time) {
 	return time.split(/\D+/);
 }
 
+
+/*
+Find a counter suffixed with the provided ID.
+Return a counter object containing:
+    the counter,
+    the counter id suffix,
+    the counter's remaining time converted to seconds.
+*/
 function findCounter(newid) {
-  var counters = document.querySelectorAll('span[id^="time"]');
-  for (var i = 0, len = counters.length; i < len; i++) {
-    var counter = counters[i];
-    var counterid = counter.id.replace(/^\D+/g, '');
-    if (counterid === newid) {
-      seconds = toSeconds(counter.innerHTML);
-      var display = counter,
+    var counters = document.querySelectorAll('span[id^="time"]');
+    for (var i = 0, len = counters.length; i < len; i++) {
+      var counter = counters[i];
+      var counterid = counter.id.replace(/^\D+/g, '');
+      var seconds = toSeconds(counter.innerHTML);
+
+      if (counterid === newid) {
+          return {
+                    counter: counter,
+                    counterid: counterid,
+                    seconds: seconds
+                };
+        };
+    };
+};
+
+/*
+Start counting down.
+*/
+function startCounter(newid) {
+
+      var counterobj = findCounter(newid);
+      var display = counterobj.counter;
+      counterid = counterobj.counterid;
+      seconds = counterobj.seconds;
+
         timer = new CountDownTimer(seconds),
         timeObj = CountDownTimer.parse(seconds);
 
@@ -91,18 +102,10 @@ function findCounter(newid) {
       formatTime(timeObj.hours, timeObj.minutes, timeObj.seconds);
       timer.onTick(formatTime);
       timer.start();
-    }
   }
-};
 
-window.onLoad = prepareTimerListeners();
-// add event listeners to each element
-// when clicked, they should do something
 
-// when task.id start is clicked,
-//      strip out the number
-//      and modify the timespan ending with that number
-//      begin the countdown for task.id time
+prepareTimerListeners();
 
-//      when task.id stop is clicked,
-//      stop the countdown for task.id time
+// it works, but on refresh I lose the countdown.
+// should make an ajax POST request containing start_timer

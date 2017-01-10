@@ -1,3 +1,5 @@
+
+
 // modified from
 // http://stackoverflow.com/a/20618517
 
@@ -69,6 +71,3 @@ CountDownTimer.parse = function(seconds) {
     }
   }
 };
-
-
-export default CountDownTimer;
