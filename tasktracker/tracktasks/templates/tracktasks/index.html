@@ -17,6 +17,7 @@
 
     <ul>
         {% for task in daily_tasks_list %}
+
             <form method="POST" action="{% url 'tracktasks:mark complete' %}">
                         {% csrf_token %}
             <li>{{ task.name }}
@@ -25,7 +26,7 @@
                 {% if task.is_timed %}
                  remaining time: <span id="time{{ task.id }}">{{ task.remaining_time|format_timedelta }}</span>
                     {% if task.start_time is None %}
-                        <button type="button" name="start_timer" id="start{{ task.id }}">Start activity</button>
+                        <button type="submit" name="start_timer" id="start{{ task.id }}">Start activity</button>
                      {% elif task.start_time is not None %}
                         <button type="submit" name="stop_timer" id="stop{{ task.id }}">Stop activity</button>
                     {% endif %}

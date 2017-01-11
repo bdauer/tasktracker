@@ -4,15 +4,21 @@ This function sets up all of the timer buttons
 to find their respective counters when clicked.
 */
 function prepareTimerListeners() {
+
   var startbuttons = document.querySelectorAll('button[id^="start"]');
-  console.log(startbuttons);
   //  Adding event listeners on iteration informed by:
   //  http://stackoverflow.com/a/8909792
+
   for (var i = 0, len = startbuttons.length; i < len; i++) {
-    var newid = startbuttons[i].id.replace(/^\D+/g, '');
+    var startbutton = startbuttons[i];
+    var newid = startbutton.id.replace(/^\D+/g, '');
+
     (function(newid) {
-      startbuttons[i].addEventListener('click', function() {
-        startCounter(newid);
+
+      startbutton.addEventListener('click', function(evt, startbutton) {
+          evt.preventDefault();
+          startCounter(newid);
+          postAjaxRequest(startbutton, newid);
       });
     })(newid);
   }
@@ -56,7 +62,6 @@ function toTimeArray(time) {
 	time += "";
 	return time.split(/\D+/);
 }
-
 
 /*
 Find a counter suffixed with the provided ID.
@@ -115,9 +120,62 @@ function startCounter(newid) {
       timer.onTick(formatTime);
       timer.start();
   }
+  function getCookie(name) {
+      var cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          var cookies = document.cookie.split(';');
+          for (var i = 0; i < cookies.length; i++) {
+              var cookie = jQuery.trim(cookies[i]);
+              // Does this cookie string begin with the name we want?
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+  }
+
+  function csrfSafeMethod(method) {
+      // these HTTP methods do not require CSRF protection
+      return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+  }
 
 
-prepareTimerListeners();
+// $('daily_task_1').on('submit', function(event)){
+//     event.preventDefault();
+//     console.log("success");
+// }
 
+function postAjaxRequest(startbutton, newid) {
+
+    $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+          if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+              xhr.setRequestHeader("X-CSRFToken", csrftoken);
+          }
+      }
+  });
+
+    var csrftoken = getCookie('csrftoken');
+
+    $.ajax({
+
+        url: '/tracktasks/marktaskcomplete/',
+        type: 'POST',
+        data: {
+                'selected_task': newid,
+                'start_timer': '',
+        }
+
+    })
+};
+
+
+// post contains:
+// {'csrfmiddlewaretoken': ['vMd4LLVIABoHuNfE5vvBTCQqvx1jtDMzwpz71V4Ft4eoG8nbEOcFsU4ervuoSc0q'],
+// 'selected_task': ['62'],
+// 'start_timer': ['']}
+$( prepareTimerListeners );
 // it works, but on refresh I lose the countdown.
 // should make an ajax POST request containing start_timer

@@ -1,7 +1,7 @@
 import datetime
 
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
+from django.http import HttpResponse, HttpRequest, HttpResponseRedirect, JsonResponse
 from django.db.models import Q
 from django.utils import timezone
 from django.views import generic
@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
 from .forms import CreateTaskForm
+
 
 from userprofiles.models import Profile
 
@@ -47,7 +48,8 @@ def mark_task_complete(request):
     Probably will move the latter two out later.
     """
 
-    if request.method == 'POST' and 'selected_task' in request.POST:
+
+    if (request.method == 'POST' or request.is_ajax()) and 'selected_task' in request.POST:
 
         task_id = request.POST['selected_task']
         task = Task.objects.get(pk=task_id)
@@ -68,8 +70,10 @@ def mark_task_complete(request):
                 task.complete()
 
         task.save()
-
-    return HttpResponseRedirect(reverse('tracktasks:index'))
+        response = HttpResponse()
+        response.status_code=200
+    return response
+    # return HttpResponseRedirect(reverse('tracktasks:index'))
 
 
 class CreateTaskView(LoginRequiredMixin, generic.CreateView):
