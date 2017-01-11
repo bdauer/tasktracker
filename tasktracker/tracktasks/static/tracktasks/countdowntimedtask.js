@@ -6,25 +6,39 @@ to find their respective counters when clicked.
 function prepareTimerListeners() {
 
   var startbuttons = document.querySelectorAll('button[id^="start"]');
-  //  Adding event listeners on iteration informed by:
-  //  http://stackoverflow.com/a/8909792
+  var stopbuttons = document.querySelectorAll('button[id^="stop"]');
 
-  for (var i = 0, len = startbuttons.length; i < len; i++) {
-    var startbutton = startbuttons[i];
-    var newid = startbutton.id.replace(/^\D+/g, '');
-
-    (function(newid) {
-
-      startbutton.addEventListener('click', function(evt) {
-          evt.preventDefault();
-          startCounter(newid);
-          changeButton(this, newid);
-
-          postAjaxRequest(newid);
-      });
-    })(newid);
-  }
+  addMultipleListeners(startbuttons);
+  addMultipleListeners(stopbuttons);
 }
+
+
+/*
+Adding listeners on iteration modified from:
+http://stackoverflow.com/a/8909792
+*/
+function addMultipleListeners(buttons) {
+    for (var i = 0, len = buttons.length; i < len; i++) {
+      var button = buttons[i];
+      var newid = button.id.replace(/^\D+/g, '');
+
+      (function(newid) {
+
+        button.addEventListener('click', function(evt) {
+            evt.preventDefault();
+
+            if (button.name.includes("start")) {
+                startCounter(newid);
+            }
+
+            changeButton(this, newid);
+
+            postAjaxRequest(this, newid);
+        });
+      })(newid);
+    }
+  }
+
 
 /*
 Takes a remaining time value
@@ -106,13 +120,17 @@ function findButton(newid) {
 
 
 function changeButton(button, newid) {
-    // buttonObj = findButton(newid);
-    // var button = buttonObj.button;
-    // var buttonid = buttonObj.buttonid;
 
-    button.id = "stop" + newid;
-    button.name = "stop_timer";
-    button.innerHTML = "Stop activity";
+    if (button.id.includes("start")) {
+        button.id = "stop" + newid;
+        button.name = "stop_timer";
+        button.innerHTML = "Stop activity";
+    }
+    else if (button.id.includes("stop")) {
+        button.id = "start" + newid;
+        button.name = "start_timer";
+        button.innerHTML = "Start activity";
+    }
 }
 
 /*
@@ -124,6 +142,7 @@ function startCounter(newid) {
       var display = counterobj.counter;
       counterid = counterobj.counterid;
       seconds = counterobj.seconds;
+
 
         timer = new CountDownTimer(seconds),
         timeObj = CountDownTimer.parse(seconds);
@@ -179,7 +198,7 @@ function csrfSafeMethod(method) {
 
 // change button on click
 
-function postAjaxRequest(newid) {
+function postAjaxRequest(button, newid) {
 
     $.ajaxSetup({
       beforeSend: function(xhr, settings) {
