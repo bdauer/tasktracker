@@ -50,29 +50,31 @@ def mark_task_complete(request):
 
 
     if (request.method == 'POST' or request.is_ajax()) and 'selected_task' in request.POST:
-
         task_id = request.POST['selected_task']
+        name = request.POST['name']
         task = Task.objects.get(pk=task_id)
 
-        if "completed" in request.POST:
+        if "completed" in name:
             task.complete()
 
-        elif "start_timer" in request.POST:
+        elif "start_timer" in name:
             task.start_time = timezone.now()
 
-        elif "stop_timer" in request.POST:
-            elapsed_time = timezone.now() - task.start_time
+        elif "stop_timer" in name:
+            try:
+                elapsed_time = timezone.now() - task.start_time
+            except TypeError:
+                task.start_time = timezone.now()
+                elapsed_time = timezone.now() - task.start_time
             task.remaining_time -= elapsed_time
 
             task.start_time = None
 
             if task.remaining_time.days < 0:
                 task.complete()
-
         task.save()
-        response = HttpResponse()
-        response.status_code=200
-    return response
+        
+    return HttpResponse()
     # return HttpResponseRedirect(reverse('tracktasks:index'))
 
 

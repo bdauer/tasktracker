@@ -38,6 +38,11 @@ CountDownTimer.prototype.start = function() {
   }());
 };
 
+CountDownTimer.prototype.stop = function() {
+    this.running = false;
+    this.tickFtns = [];
+}
+
 CountDownTimer.prototype.onTick = function(ftn) {
   if (typeof ftn === 'function') {
     this.tickFtns.push(ftn);

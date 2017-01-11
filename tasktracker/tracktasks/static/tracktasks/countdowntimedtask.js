@@ -25,15 +25,19 @@ function addMultipleListeners(buttons) {
       (function(newid) {
 
         button.addEventListener('click', function(evt) {
+
             evt.preventDefault();
 
             if (button.name.includes("start")) {
                 startCounter(newid);
+
             }
+            else if (button.name.includes("stop")) {
 
-            changeButton(this, newid);
-
+                stopCounter(newid);
+            }
             postAjaxRequest(this, newid);
+            changeButton(this, newid);
         });
       })(newid);
     }
@@ -144,8 +148,8 @@ function startCounter(newid) {
       seconds = counterobj.seconds;
 
 
-        timer = new CountDownTimer(seconds),
-        timeObj = CountDownTimer.parse(seconds);
+      timer = new CountDownTimer(seconds),
+      timeObj = CountDownTimer.parse(seconds);
 
       // nested to allow access to display
       // when iterating over tickFtns
@@ -167,6 +171,32 @@ function startCounter(newid) {
       timer.onTick(formatTime);
       timer.start();
   }
+
+function stopCounter(newid) {
+    timer.stop();
+    var counterobj = findCounter(newid);
+    var display = counterobj.counter;
+    counterid = counterobj.counterid;
+    seconds = counterobj.seconds;
+
+    timeObj = CountDownTimer.parse(seconds);
+
+    function formatTime(hours, minutes, seconds) {
+        if (typeof hours != "undefined") {
+          display.textContent = hours + 'h:' + minutes + 'm:' + seconds + "s";
+          }
+          else if (typeof minutes != "undefined") {
+              display.textContent = minutes + 'm:' + seconds + "s";
+          }
+          else {
+           display.textContent = seconds + "s";
+          }
+        }
+
+    formatTime(timeObj.hours, timeObj.minutes, timeObj.seconds);
+
+
+}
 
 /*
 Returns a cookie value with the provided name.
@@ -196,8 +226,6 @@ function csrfSafeMethod(method) {
 }
 
 
-// change button on click
-
 function postAjaxRequest(button, newid) {
 
     $.ajaxSetup({
@@ -207,26 +235,21 @@ function postAjaxRequest(button, newid) {
           }
       }
   });
-
     var csrftoken = getCookie('csrftoken');
-
+    var name = button.name;
+    console.log(name);
     $.ajax({
 
         url: '/tracktasks/marktaskcomplete/',
         type: 'POST',
         data: {
                 'selected_task': newid,
-                'start_timer': '',
+                // 'start_timer': '',
+                'name': name
         }
 
     })
 };
 
 
-// post contains:
-// {'csrfmiddlewaretoken': ['vMd4LLVIABoHuNfE5vvBTCQqvx1jtDMzwpz71V4Ft4eoG8nbEOcFsU4ervuoSc0q'],
-// 'selected_task': ['62'],
-// 'start_timer': ['']}
 $( prepareTimerListeners );
-// it works, but on refresh I lose the countdown.
-// should make an ajax POST request containing start_timer
