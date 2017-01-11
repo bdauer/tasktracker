@@ -15,10 +15,12 @@ function prepareTimerListeners() {
 
     (function(newid) {
 
-      startbutton.addEventListener('click', function(evt, startbutton) {
+      startbutton.addEventListener('click', function(evt) {
           evt.preventDefault();
           startCounter(newid);
-          postAjaxRequest(startbutton, newid);
+          changeButton(this, newid);
+
+          postAjaxRequest(newid);
       });
     })(newid);
   }
@@ -87,6 +89,32 @@ function findCounter(newid) {
     };
 };
 
+function findButton(newid) {
+    var buttons = document.querySelectAll('button[id^="start"]');
+    for (var i = 0, len = startbuttons.length; i < len; i++) {
+        var button = buttons[i];
+        var buttonid = button.id.replace(/^\D+/g, '');
+
+        if (buttonid === newid) {
+            return {
+                button: button,
+                buttonid: buttonid
+            }
+        }
+    }
+};
+
+
+function changeButton(button, newid) {
+    // buttonObj = findButton(newid);
+    // var button = buttonObj.button;
+    // var buttonid = buttonObj.buttonid;
+
+    button.id = "stop" + newid;
+    button.name = "stop_timer";
+    button.innerHTML = "Stop activity";
+}
+
 /*
 Start counting down.
 */
@@ -120,34 +148,38 @@ function startCounter(newid) {
       timer.onTick(formatTime);
       timer.start();
   }
-  function getCookie(name) {
-      var cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-          var cookies = document.cookie.split(';');
-          for (var i = 0; i < cookies.length; i++) {
-              var cookie = jQuery.trim(cookies[i]);
-              // Does this cookie string begin with the name we want?
-              if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                  break;
-              }
+
+/*
+Returns a cookie value with the provided name.
+*/
+function getCookie(name) {
+  var cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+          var cookie = jQuery.trim(cookies[i]);
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
           }
       }
-      return cookieValue;
   }
+  return cookieValue;
+}
 
-  function csrfSafeMethod(method) {
-      // these HTTP methods do not require CSRF protection
-      return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-  }
+/*
+Checks whether a method requires CSRF protection.
+*/
+function csrfSafeMethod(method) {
+  // these HTTP methods do not require CSRF protection
+  return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
 
 
-// $('daily_task_1').on('submit', function(event)){
-//     event.preventDefault();
-//     console.log("success");
-// }
+// change button on click
 
-function postAjaxRequest(startbutton, newid) {
+function postAjaxRequest(newid) {
 
     $.ajaxSetup({
       beforeSend: function(xhr, settings) {
