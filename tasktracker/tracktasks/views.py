@@ -51,6 +51,7 @@ def mark_task_complete(request):
 
     if (request.method == 'POST' or request.is_ajax()) and 'selected_task' in request.POST:
         task_id = request.POST['selected_task']
+        print(request.POST)
         name = request.POST['name']
         task = Task.objects.get(pk=task_id)
 
@@ -73,7 +74,7 @@ def mark_task_complete(request):
             if task.remaining_time.days < 0:
                 task.complete()
         task.save()
-        
+
     return HttpResponse()
     # return HttpResponseRedirect(reverse('tracktasks:index'))
 

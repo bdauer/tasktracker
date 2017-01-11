@@ -7,9 +7,11 @@ function prepareTimerListeners() {
 
   var startbuttons = document.querySelectorAll('button[id^="start"]');
   var stopbuttons = document.querySelectorAll('button[id^="stop"]');
+  var untimedbuttons = document.querySelectorAll('button[id^="completed"]');
 
   addMultipleListeners(startbuttons);
   addMultipleListeners(stopbuttons);
+  addMultipleListeners(untimedbuttons);
 }
 
 
@@ -30,12 +32,11 @@ function addMultipleListeners(buttons) {
 
             if (button.name.includes("start")) {
                 startCounter(newid);
-
             }
             else if (button.name.includes("stop")) {
-
                 stopCounter(newid);
             }
+
             postAjaxRequest(this, newid);
             changeButton(this, newid);
         });
