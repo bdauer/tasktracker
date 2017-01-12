@@ -51,7 +51,7 @@ def mark_task_complete(request):
 
     if (request.method == 'POST' or request.is_ajax()) and 'selected_task' in request.POST:
         task_id = request.POST['selected_task']
-        if request.POST['name']:
+        if 'name' in request.POST:
             name = request.POST['name']
         task = Task.objects.get(pk=task_id)
 
