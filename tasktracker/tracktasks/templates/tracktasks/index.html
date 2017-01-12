@@ -96,6 +96,7 @@
     <p>There are no remaining tasks for today!</p>
 {% endif %}
 <br />
+<div id=completed_div>
 {% if completed_tasks_list %}
     <h2>completed tasks</h2>
     <ul id="completed_tasks">
@@ -103,6 +104,7 @@
             <li>{{  task.name  }}</li>
         {% endfor %}
 {% endif %}
+</div>
 
 {% endblock %}
 {% block javascript %}

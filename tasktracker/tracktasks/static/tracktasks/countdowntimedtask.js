@@ -14,38 +14,6 @@ function prepareTimerListeners() {
   addMultipleListeners(untimedbuttons);
 }
 
-
-function moveCompletedTask(node) {
-    var completedTasks = document.getElementById("completed_tasks");
-
-    // entryText is including all of the text in entry.
-    // just want the task name, which is just prior to input type
-
-    var entry = node.parentNode;
-    var entryText = entry.firstChild;
-    while (entry.hasChildNodes()) {
-        entry.removeChild(entry.firstChild);
-    }
-
-    // create a new list entry
-    // with the task name
-    var newEntry = document.createElement("li");
-    newEntry.appendChild(entryText);
-
-    entry.parentNode.removeChild(entry);
-
-
-    completedTasks.insertBefore(newEntry, completedTasks.childNodes[0]);
-}
-
-/*
-Return the text with all non-numeric
-characters removed.
-*/
-function stripNonNumerics(text) {
-    return text.replace(/^\D+/g, '');
-}
-
 /*
 Adding listeners on iteration modified from:
 http://stackoverflow.com/a/8909792
@@ -54,7 +22,6 @@ function addMultipleListeners(buttons) {
     for (var i = 0, len = buttons.length; i < len; i++) {
       var button = buttons[i];
       var newid = stripNonNumerics(button.id);
-    //   var newid = button.id.replace(/^\D+/g, '');
 
       (function(newid) {
 
@@ -79,6 +46,97 @@ function addMultipleListeners(buttons) {
     }
   }
 
+/*
+Move a completed task
+,reformatted,
+to the completed tasks list.
+*/
+function moveCompletedTask(node) {
+
+    // if completed_tasks doesn't exist,
+    // create it.
+    if (!document.getElementById("completed_tasks")) {
+        var completedDiv = document.getElementById("completed_div");
+        var newh2 = document.createElement("h2");
+        var newUL = document.createElement("ul");
+        newh2.innerHTML = "completed tasks";
+        newUL.id = "completed_tasks";
+        completedDiv.appendChild(newh2);
+        completedDiv.appendChild(newUL);
+    }
+
+    var completedTasks = document.getElementById("completed_tasks");
+    var entry = node.parentNode;
+    var entryText = entry.firstChild;
+    while (entry.hasChildNodes()) {
+        entry.removeChild(entry.firstChild);
+    }
+
+    // var newEntry = document.createElement("li");
+    // newEntry.appendChild(entryText);
+    var newEntry = createLI(entryText);
+    entry.parentNode.removeChild(entry);
+    completedTasks.insertBefore(newEntry, completedTasks.childNodes[0]);
+}
+
+/*
+Create a new <li>
+with the provided text.
+*/
+function createLI(text) {
+
+    var newEntry = document.createElement("li");
+    newEntry.appendChild(text);
+    return newEntry;
+}
+
+function postAjaxRequest(button, newid) {
+
+    $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+          if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+              xhr.setRequestHeader("X-CSRFToken", csrftoken);
+          }
+      }
+  });
+    var csrftoken = getCookie('csrftoken');
+    var name = button.name;
+    $.ajax({
+
+        url: '/tracktasks/marktaskcomplete/',
+        type: 'POST',
+        data: {
+                'selected_task': newid,
+                'name': name
+        }
+
+    })
+};
+
+/*
+Toggle stop and start buttons for timed tasks.
+*/
+function changeButton(button, newid) {
+
+    if (button.id.includes("start")) {
+        button.id = "stop" + newid;
+        button.name = "stop_timer";
+        button.innerHTML = "Stop activity";
+    }
+    else if (button.id.includes("stop")) {
+        button.id = "start" + newid;
+        button.name = "start_timer";
+        button.innerHTML = "Start activity";
+    }
+}
+
+/*
+Return the text with all non-numeric
+characters removed.
+*/
+function stripNonNumerics(text) {
+    return text.replace(/^\D+/g, '');
+}
 
 /*
 Takes a remaining time value
@@ -160,21 +218,6 @@ function findButton(newid) {
     }
 };
 
-
-function changeButton(button, newid) {
-
-    if (button.id.includes("start")) {
-        button.id = "stop" + newid;
-        button.name = "stop_timer";
-        button.innerHTML = "Stop activity";
-    }
-    else if (button.id.includes("stop")) {
-        button.id = "start" + newid;
-        button.name = "start_timer";
-        button.innerHTML = "Start activity";
-    }
-}
-
 /*
 Start counting down.
 */
@@ -184,8 +227,6 @@ function startCounter(newid) {
       var display = counterobj.counter;
       counterid = counterobj.counterid;
       seconds = counterobj.seconds;
-
-
       timer = new CountDownTimer(seconds),
       timeObj = CountDownTimer.parse(seconds);
 
@@ -210,6 +251,9 @@ function startCounter(newid) {
       timer.start();
   }
 
+/*
+Stop counting down.
+*/
 function stopCounter(newid) {
     timer.stop();
     var counterobj = findCounter(newid);
@@ -230,10 +274,7 @@ function stopCounter(newid) {
            display.textContent = seconds + "s";
           }
         }
-
     formatTime(timeObj.hours, timeObj.minutes, timeObj.seconds);
-
-
 }
 
 /*
@@ -263,30 +304,6 @@ function csrfSafeMethod(method) {
   return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
 
-
-function postAjaxRequest(button, newid) {
-
-    $.ajaxSetup({
-      beforeSend: function(xhr, settings) {
-          if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-              xhr.setRequestHeader("X-CSRFToken", csrftoken);
-          }
-      }
-  });
-    var csrftoken = getCookie('csrftoken');
-    var name = button.name;
-    $.ajax({
-
-        url: '/tracktasks/marktaskcomplete/',
-        type: 'POST',
-        data: {
-                'selected_task': newid,
-                // 'start_timer': '',
-                'name': name
-        }
-
-    })
-};
 
 
 $( prepareTimerListeners );
