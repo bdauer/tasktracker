@@ -30,7 +30,9 @@ function addMultipleListeners(buttons) {
             evt.preventDefault();
 
             if (button.name.includes("start")) {
-                startCounter(newid);
+                var counterobj = findCounter(newid);
+                startCounter(newid, counterobj);
+                // add a listener to check when we reach 0
             }
             else if (button.name.includes("stop")) {
                 stopCounter(newid);
@@ -45,6 +47,10 @@ function addMultipleListeners(buttons) {
       })(newid);
     }
   }
+
+function listenForZero(newid) {
+
+}
 
 /*
 Move a completed task
@@ -221,9 +227,8 @@ function findButton(newid) {
 /*
 Start counting down.
 */
-function startCounter(newid) {
+function startCounter(newid, counterobj) {
 
-      var counterobj = findCounter(newid);
       var display = counterobj.counter;
       counterid = counterobj.counterid;
       seconds = counterobj.seconds;
