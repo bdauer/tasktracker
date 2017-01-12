@@ -51,8 +51,8 @@ def mark_task_complete(request):
 
     if (request.method == 'POST' or request.is_ajax()) and 'selected_task' in request.POST:
         task_id = request.POST['selected_task']
-        print(request.POST)
-        name = request.POST['name']
+        if request.POST['name']:
+            name = request.POST['name']
         task = Task.objects.get(pk=task_id)
 
         if "completed" in name:
@@ -76,7 +76,6 @@ def mark_task_complete(request):
         task.save()
 
     return HttpResponse()
-    # return HttpResponseRedirect(reverse('tracktasks:index'))
 
 
 class CreateTaskView(LoginRequiredMixin, generic.CreateView):

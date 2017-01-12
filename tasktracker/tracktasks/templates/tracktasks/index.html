@@ -98,7 +98,7 @@
 <br />
 {% if completed_tasks_list %}
     <h2>completed tasks</h2>
-    <ul>
+    <ul id="completed_tasks">
         {% for task in completed_tasks_list %}
             <li>{{  task.name  }}</li>
         {% endfor %}

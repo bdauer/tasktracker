@@ -15,6 +15,29 @@ function prepareTimerListeners() {
 }
 
 
+function moveCompletedTask(node) {
+    var completedTasks = document.getElementById("completed_tasks");
+
+    // entryText is including all of the text in entry.
+    // just want the task name, which is just prior to input type
+
+    var entry = node.parentNode;
+    var entryText = entry.firstChild;
+    while (entry.hasChildNodes()) {
+        entry.removeChild(entry.firstChild);
+    }
+
+    // create a new list entry
+    // with the task name
+    var newEntry = document.createElement("li");
+    newEntry.appendChild(entryText);
+
+    entry.parentNode.removeChild(entry);
+
+
+    completedTasks.insertBefore(newEntry, completedTasks.childNodes[0]);
+}
+
 /*
 Adding listeners on iteration modified from:
 http://stackoverflow.com/a/8909792
@@ -35,6 +58,9 @@ function addMultipleListeners(buttons) {
             }
             else if (button.name.includes("stop")) {
                 stopCounter(newid);
+            }
+            else if (button.name.includes("completed")) {
+                moveCompletedTask(this);
             }
 
             postAjaxRequest(this, newid);
@@ -238,7 +264,6 @@ function postAjaxRequest(button, newid) {
   });
     var csrftoken = getCookie('csrftoken');
     var name = button.name;
-    console.log(name);
     $.ajax({
 
         url: '/tracktasks/marktaskcomplete/',
