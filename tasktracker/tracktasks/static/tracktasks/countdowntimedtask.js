@@ -39,13 +39,22 @@ function moveCompletedTask(node) {
 }
 
 /*
+Return the text with all non-numeric
+characters removed.
+*/
+function stripNonNumerics(text) {
+    return text.replace(/^\D+/g, '');
+}
+
+/*
 Adding listeners on iteration modified from:
 http://stackoverflow.com/a/8909792
 */
 function addMultipleListeners(buttons) {
     for (var i = 0, len = buttons.length; i < len; i++) {
       var button = buttons[i];
-      var newid = button.id.replace(/^\D+/g, '');
+      var newid = stripNonNumerics(button.id);
+    //   var newid = button.id.replace(/^\D+/g, '');
 
       (function(newid) {
 
@@ -121,7 +130,8 @@ function findCounter(newid) {
     var counters = document.querySelectorAll('span[id^="time"]');
     for (var i = 0, len = counters.length; i < len; i++) {
       var counter = counters[i];
-      var counterid = counter.id.replace(/^\D+/g, '');
+    //   var counterid = counter.id.replace(/^\D+/g, '');
+      var counterid = stripNonNumerics(counter.id);
       var seconds = toSeconds(counter.innerHTML);
 
       if (counterid === newid) {
@@ -138,7 +148,8 @@ function findButton(newid) {
     var buttons = document.querySelectAll('button[id^="start"]');
     for (var i = 0, len = startbuttons.length; i < len; i++) {
         var button = buttons[i];
-        var buttonid = button.id.replace(/^\D+/g, '');
+        // var buttonid = button.id.replace(/^\D+/g, '');
+        var buttonid = stripNonNumerics(button.id);
 
         if (buttonid === newid) {
             return {
