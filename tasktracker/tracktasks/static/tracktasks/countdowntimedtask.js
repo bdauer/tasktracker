@@ -32,15 +32,17 @@ function addMultipleListeners(buttons) {
             if (button.name.includes("start")) {
                 var counterobj = findCounter(newid);
                 startCounter(newid, counterobj);
-                // add a listener to check when we reach 0
+                listenForZero(newid, counterobj);
             }
             else if (button.name.includes("stop")) {
-                stopCounter(newid);
+                // if there is a timer instance running:
+                if (window.hasOwnProperty('timer')) {
+                    stopCounter(newid);
+                }
             }
             else if (button.name.includes("completed")) {
                 moveCompletedTask(this);
             }
-
             postAjaxRequest(this, newid);
             changeButton(this, newid);
         });
@@ -48,9 +50,24 @@ function addMultipleListeners(buttons) {
     }
   }
 
-function listenForZero(newid) {
 
-}
+function listenForZero(newid, counterobj) {
+    display = counterobj.counter;
+
+    var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                  if (mutation.target.innerHTML == "00s") {
+                      var button = findButton(newid);
+                      moveCompletedTask(button);
+                      postAjaxRequest(button, newid);
+                      alert("You have completed your current timed task!")
+                      observer.disconnect();
+              }
+            });
+    });
+        config = {attributes: true, childList: true, characterData: true};
+        observer.observe(display, config);
+    };
 
 /*
 Move a completed task
@@ -97,7 +114,6 @@ function createLI(text) {
 }
 
 function postAjaxRequest(button, newid) {
-
     $.ajaxSetup({
       beforeSend: function(xhr, settings) {
           if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
@@ -209,17 +225,13 @@ function findCounter(newid) {
 };
 
 function findButton(newid) {
-    var buttons = document.querySelectAll('button[id^="start"]');
-    for (var i = 0, len = startbuttons.length; i < len; i++) {
+    var buttons = document.querySelectorAll('button[id^="stop"]');
+    for (var i = 0, len = buttons.length; i < len; i++) {
         var button = buttons[i];
-        // var buttonid = button.id.replace(/^\D+/g, '');
         var buttonid = stripNonNumerics(button.id);
 
         if (buttonid === newid) {
-            return {
-                button: button,
-                buttonid: buttonid
-            }
+            return button;
         }
     }
 };

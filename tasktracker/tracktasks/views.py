@@ -51,8 +51,9 @@ def mark_task_complete(request):
 
     if (request.method == 'POST' or request.is_ajax()) and 'selected_task' in request.POST:
         task_id = request.POST['selected_task']
-        if 'name' in request.POST:
-            name = request.POST['name']
+        # if 'name' in request.POST:
+        print(request.POST)
+        name = request.POST['name']
         task = Task.objects.get(pk=task_id)
 
         if "completed" in name:
@@ -68,11 +69,14 @@ def mark_task_complete(request):
                 task.start_time = timezone.now()
                 elapsed_time = timezone.now() - task.start_time
             task.remaining_time -= elapsed_time
-
             task.start_time = None
 
+            # only the days attribute of a timedelta
+            # will go negative.
             if task.remaining_time.days < 0:
+                print("less than or equal to zero")
                 task.complete()
+
         task.save()
 
     return HttpResponse()
