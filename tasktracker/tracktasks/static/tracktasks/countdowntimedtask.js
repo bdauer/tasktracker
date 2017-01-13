@@ -43,6 +43,7 @@ function addMultipleListeners(buttons) {
             else if (button.name.includes("completed")) {
                 moveCompletedTask(this);
             }
+            console.log(this);
             postAjaxRequest(this, newid);
             changeButton(this, newid);
         });
