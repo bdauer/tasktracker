@@ -31,13 +31,12 @@ class IndexView(LoginRequiredMixin, generic.ListView):
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
-        data['daily_tasks_list'] = Task.is_scheduled_for(self.request,
+        data['daily_tasks_list'] = Task.objects.scheduled_for(self.request, datetime.date.today())
+        data['still_due_tasks_list'] = Task.objects.is_still_due(self.request,
                                                          datetime.date.today())
-        data['still_due_tasks_list'] = Task.is_still_due(self.request,
-                                                         datetime.date.today())
-        data['completed_tasks_list'] = Task.was_completed_on(self.request,
+        data['completed_tasks_list'] = Task.objects.was_completed_on(self.request,
                                                         datetime.date.today())
-        data['overdue_tasks_list'] = Task.is_overdue(self.request,
+        data['overdue_tasks_list'] = Task.objects.is_overdue(self.request,
                                                      datetime.date.today())
         return data
 

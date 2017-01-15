@@ -8,6 +8,60 @@ from django.contrib.auth.models import User
 from django.http import HttpRequest
 
 
+class TaskManager(models.Manager):
+    """
+    access using Task.objects where objects is the name of the attribute assigned
+    to the TaskManager. Needs to be changed in the view.
+    """
+
+    def def_queryset(self):
+        return super(TaskManager,
+        self).get_queryset().filter(user=self.request.user)
+
+    def scheduled_for(self, request, date, completed=False):
+        """
+        Return the tasks scheduled for the datetime provided.
+        completed: indicates whether to return completed or unfinished tasks.
+        """
+        if completed:
+            return self.filter(
+                date=date)\
+                .order_by('date')\
+                .filter(Q(is_completed=True) & Q(date_type='S')
+                        & Q(user=request.user))
+        elif not completed:
+            return self.filter(
+                date=date)\
+                .order_by('date')\
+                .filter(Q(is_completed=False) & Q(date_type='S')
+                        & Q(user=request.user))
+
+    def was_completed_on(self, request, date_completed):
+        """
+        Return all tasks completed today.
+        """
+        return self.filter(
+            completed_date=date_completed).filter(is_completed=True,
+                                                  user=request.user)
+
+    def is_still_due(self, request, duedate):
+        """
+        Return the non-recurring tasks due after the datetime provided.
+        """
+        return self.filter(date_type='D', date__gte=duedate,
+                                   is_completed=False,
+                                   user=request.user).order_by('date')
+
+    def is_overdue(self, request, duedate):
+        """
+        Return all past due tasks.
+        """
+        # datetime issues coming back to haunt me.
+        # need to change datetime field to date field and deal with the fallout
+        return self.filter(date__lt=duedate, is_completed=False,
+                                   user=request.user).order_by('-date')
+
+
 # Opted against inheritance for different types of tasks because
 # it doesn't translate well into a relational model.
 # might consider a one-to-one relationship for dealing with:
@@ -31,6 +85,7 @@ class Task(models.Model):
     anchor_date: used for calculating recurrence. See inline comment.
     recurring: how frequently a task recurs.
     """
+    objects = TaskManager()
     user = models.ForeignKey(User, null=True)
 
     name = models.CharField(max_length=200)
