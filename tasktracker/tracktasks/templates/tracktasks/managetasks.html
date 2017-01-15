@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block addl_head %}
+{% endblock %}
+
+{% block content %}
+{% load timedelta_filter %}
+{% if user_tasks %}
+    <div id="user_tasks_div">
+
+        <h2>tasks for today</h2>
+        <ul>
+            {% for task in user_tasks %}
+                <li>{{ task.name }}
+                    {{ task.date }}</li>
+
+
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+{% endblock %}
+{% block javascript %}
+{% load static %}
+{% endblock %}

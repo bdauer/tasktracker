@@ -26,6 +26,7 @@ class IndexView(LoginRequiredMixin, generic.ListView):
     """
     Shows all of today's tasks.
     """
+
     template_name = 'tracktasks/index.html'
     model = Task
 
@@ -39,6 +40,17 @@ class IndexView(LoginRequiredMixin, generic.ListView):
         data['overdue_tasks_list'] = Task.objects.overdue_on(self.request,
                                                      datetime.date.today())
         return data
+
+class ManageTasksView(LoginRequiredMixin, generic.ListView):
+    """
+    Show all of a user's tasks.
+    """
+    template_name = 'tracktasks/managetasks.html'
+    model = Task
+    context_object_name = 'user_tasks'
+
+    def get_queryset(self):
+        return Task.objects.filter(is_completed=False)
 
 @login_required
 def mark_task_complete(request):
