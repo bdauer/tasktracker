@@ -3,5 +3,15 @@
     float: none;
 }
 
-body {
+#content {
+    padding: 1%
+}
+
+.task_name {
+    font-weight: bold
+}
+
+.class_entry {
+
+    background-color: white;
 }

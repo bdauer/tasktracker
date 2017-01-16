@@ -11,7 +11,7 @@ from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
-from .forms import CreateTaskForm
+from .forms import CreateTaskForm, ModifyTaskForm
 
 
 from userprofiles.models import Profile
@@ -92,6 +92,12 @@ def mark_task_complete(request):
 
     return HttpResponse()
 
+class ModifyTaskView(LoginRequiredMixin, generic.UpdateView):
+    """
+    Update an existing task.
+    """
+    form_class=ModifyTaskForm
+    tenokate_name = 'tracktasks/modifytask.html'
 
 class CreateTaskView(LoginRequiredMixin, generic.CreateView):
     """

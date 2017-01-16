@@ -1,6 +1,12 @@
 from django import forms
 from .models import Task
 
+class ModifyTaskForm(forms.ModelForm):
+
+    class Meta:
+        model = Task
+        exclude = ['date-type']
+
 class CreateTaskForm(forms.ModelForm):
 
 

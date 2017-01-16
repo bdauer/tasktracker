@@ -7,16 +7,31 @@
 {% load timedelta_filter %}
 {% if user_tasks %}
     <div id="user_tasks_div">
+        <h2>manage tasks</h2>
+        <div class="list_group">
 
-        <h2>tasks for today</h2>
-        <ul>
             {% for task in user_tasks %}
-                <li>{{ task.name }}
-                    {{ task.date }}</li>
-
+            <form method="POST" action="{% url 'tracktasks:modify task' %}">
+                {% csrf_token %}
+                <button type="button submit" class="list-group-item class_entry">
+                    <span class="task_name">{{ task.name }}</span> <br>
+                        {% if task.is_timed == 'True' %}
+                            timed
+                        {% else %}
+                            untimed
+                        {% endif %}
+                        <br>
+                        {% if task.date_type == 'S' %}
+                            scheduled for:
+                        {% elif task.date_type == 'D' %}
+                            due by:
+                        {% endif %}
+                    {{ task.date }}.<br>
+                </button>
+            </form>
 
             {% endfor %}
-        </ul>
+        </div>
     </div>
 {% endif %}
 {% endblock %}
