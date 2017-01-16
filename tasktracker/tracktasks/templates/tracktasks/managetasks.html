@@ -1,3 +1,6 @@
+<!--  look into ifchanged in django templates to
+      add a date and separate by date-->
+
 {% extends "base.html" %}
 
 {% block addl_head %}
@@ -6,33 +9,36 @@
 {% block content %}
 {% load timedelta_filter %}
 {% if user_tasks %}
-    <div id="user_tasks_div">
-        <h2>manage tasks</h2>
-        <div class="list_group">
+<div class="row justify-content-center">
+    <div id="user_tasks_div" class="col-xs-8 justify-content-center">
 
+        <div class="list-group">
+        <h2>manage tasks</h2>
             {% for task in user_tasks %}
+
             <form method="POST" action="{% url 'tracktasks:modify task' %}">
                 {% csrf_token %}
                 <button type="button submit" class="list-group-item class_entry">
                     <span class="task_name">{{ task.name }}</span> <br>
-                        {% if task.is_timed == 'True' %}
+                        {% if task.is_timed %}
                             timed
-                        {% else %}
-                            untimed
+                            <br>
                         {% endif %}
-                        <br>
+
                         {% if task.date_type == 'S' %}
                             scheduled for:
                         {% elif task.date_type == 'D' %}
                             due by:
                         {% endif %}
-                    {{ task.date }}.<br>
+                    {{ task.date|date:"SHORT_DATE_FORMAT" }}.<br>
                 </button>
             </form>
 
             {% endfor %}
         </div>
     </div>
+</div>
+
 {% endif %}
 {% endblock %}
 {% block javascript %}
