@@ -18,6 +18,7 @@
 
             <form method="POST" action="{% url 'tracktasks:modify task' %}">
                 {% csrf_token %}
+                <input type="hidden" value="{{ task.id }}" name="selected_task">
                 <button type="button submit" class="list-group-item class_entry">
                     <span class="task_name">{{ task.name }}</span> <br>
                         {% if task.is_timed %}

@@ -97,7 +97,12 @@ class ModifyTaskView(LoginRequiredMixin, generic.UpdateView):
     Update an existing task.
     """
     form_class=ModifyTaskForm
-    tenokate_name = 'tracktasks/modifytask.html'
+    template_name = 'tracktasks/modifytask.html'
+
+    def get_object(self):
+        print(self.request.POST)
+        obj = Task.objects.get(pk=self.request.POST['selected_task'])
+
 
 class CreateTaskView(LoginRequiredMixin, generic.CreateView):
     """
