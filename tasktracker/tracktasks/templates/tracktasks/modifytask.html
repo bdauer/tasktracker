@@ -2,10 +2,17 @@
 
 {% block content %}
 
-<form method='POST'>
+
+
+<form method="POST" action="{% url 'tracktasks:modify task' %}">
+    <input type="hidden" value="{{ task.id }}" name="selected_task">
+    {% csrf_token %}
+
+
 {{ form.as_p }}
-{% csrf_token %}
 
 <button class="btn btn-primary" type="submit" value="newtask">Modify Task</button>
 </form>
+
+
 {% endblock %}
