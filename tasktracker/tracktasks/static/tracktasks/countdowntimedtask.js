@@ -1,3 +1,4 @@
+"use strict";
 
 /*
 This function sets up all of the timer buttons
@@ -5,13 +6,8 @@ to find their respective counters when clicked.
 */
 function prepareTimerListeners() {
 
-  var startbuttons = document.querySelectorAll('button[id^="start"]');
-  var stopbuttons = document.querySelectorAll('button[id^="stop"]');
-  var untimedbuttons = document.querySelectorAll('button[id^="completed"]');
-
-  addMultipleListeners(startbuttons);
-  addMultipleListeners(stopbuttons);
-  addMultipleListeners(untimedbuttons);
+    var buttons = document.getElementsByTagName('button')
+    addMultipleListeners(buttons);
 }
 
 /*
@@ -23,27 +19,34 @@ function addMultipleListeners(buttons) {
       var button = buttons[i];
       var newid = stripNonNumerics(button.id);
 
+
       (function(newid) {
 
         button.addEventListener('click', function(evt) {
 
             evt.preventDefault();
 
+
             if (button.name.includes("start")) {
+                console.log("start");
+
                 var counterobj = findCounter(newid);
                 startCounter(newid, counterobj);
                 listenForZero(newid, counterobj);
             }
             else if (button.name.includes("stop")) {
+                console.log("stop");
+
                 // if there is a timer instance running:
                 if (window.hasOwnProperty('timer')) {
+                    console.log("there is a timer");
                     stopCounter(newid);
                 }
             }
             else if (button.name.includes("completed")) {
+                console.log(this);
                 moveCompletedTask(this);
             }
-            console.log(this);
             postAjaxRequest(this, newid);
             changeButton(this, newid);
         });
@@ -53,7 +56,7 @@ function addMultipleListeners(buttons) {
 
 
 function listenForZero(newid, counterobj) {
-    display = counterobj.counter;
+    var display = counterobj.counter;
 
     var observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
@@ -66,8 +69,9 @@ function listenForZero(newid, counterobj) {
               }
             });
     });
-        config = {attributes: true, childList: true, characterData: true};
+        var config = {attributes: true, childList: true, characterData: true};
         observer.observe(display, config);
+
     };
 
 /*
@@ -124,6 +128,7 @@ function postAjaxRequest(button, newid) {
   });
     var csrftoken = getCookie('csrftoken');
     var name = button.name;
+    console.log(name)
     $.ajax({
 
         url: '/tracktasks/marktaskcomplete/',
@@ -150,6 +155,7 @@ function changeButton(button, newid) {
         button.id = "start" + newid;
         button.name = "start_timer";
         button.innerHTML = "Start activity";
+
     }
 }
 
@@ -169,7 +175,7 @@ and H and M are optional,
 and returns the total seconds.
 */
 function toSeconds(time) {
-  timeArray = toTimeArray(time);
+  var timeArray = toTimeArray(time);
   // if only minutes and seconds are present:
   if (timeArray.length === 2) {
   var seconds = timeArray[0];
@@ -241,12 +247,12 @@ function findButton(newid) {
 Start counting down.
 */
 function startCounter(newid, counterobj) {
-
+    console.log("counter started");
       var display = counterobj.counter;
-      counterid = counterobj.counterid;
-      seconds = counterobj.seconds;
-      timer = new CountDownTimer(seconds),
-      timeObj = CountDownTimer.parse(seconds);
+      var counterid = counterobj.counterid;
+      var seconds = counterobj.seconds;
+      var timer = new CountDownTimer(seconds);
+      var timeObj = CountDownTimer.parse(seconds);
 
       // nested to allow access to display
       // when iterating over tickFtns
@@ -267,19 +273,22 @@ function startCounter(newid, counterobj) {
       formatTime(timeObj.hours, timeObj.minutes, timeObj.seconds);
       timer.onTick(formatTime);
       timer.start();
-  }
+      window.timer = timer;
 
+
+  }
 /*
 Stop counting down.
 */
 function stopCounter(newid) {
+    console.log(timer);
     timer.stop();
     var counterobj = findCounter(newid);
     var display = counterobj.counter;
-    counterid = counterobj.counterid;
-    seconds = counterobj.seconds;
+    var counterid = counterobj.counterid;
+    var seconds = counterobj.seconds;
 
-    timeObj = CountDownTimer.parse(seconds);
+    var timeObj = CountDownTimer.parse(seconds);
 
     function formatTime(hours, minutes, seconds) {
         if (typeof hours != "undefined") {
@@ -321,7 +330,6 @@ function csrfSafeMethod(method) {
   // these HTTP methods do not require CSRF protection
   return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
-
 
 
 $( prepareTimerListeners );
