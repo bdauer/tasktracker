@@ -54,7 +54,14 @@ function addMultipleListeners(buttons) {
     }
   }
 
-
+/*
+Creates a mutation observer that listens
+for the timer to reach 0. If it does,
+the task is moved to the completed list
+and an ajax request is sent to the backend
+so that the task is registered in the db
+as complete.
+*/
 function listenForZero(newid, counterobj) {
     var display = counterobj.counter;
 
@@ -118,6 +125,11 @@ function createLI(text) {
     return newEntry;
 }
 
+/*
+Sends an ajax POST request
+containing information about the
+task to update.
+*/
 function postAjaxRequest(button, newid) {
     $.ajaxSetup({
       beforeSend: function(xhr, settings) {
@@ -231,6 +243,10 @@ function findCounter(newid) {
     };
 };
 
+/*
+Finds a button with the provided id.
+Returns the button.
+*/
 function findButton(newid) {
     var buttons = document.querySelectorAll('button[id^="stop"]');
     for (var i = 0, len = buttons.length; i < len; i++) {
