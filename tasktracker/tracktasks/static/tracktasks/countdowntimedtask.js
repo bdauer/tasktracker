@@ -28,18 +28,16 @@ function addMultipleListeners(buttons) {
       var button = buttons[i];
       var newid = stripNonNumerics(button.id);
 
-
       (function(newid) {
 
         button.addEventListener('click', function(evt) {
 
-
             evt.preventDefault();
+
 
 
             if (button.name.includes("start")) {
                 console.log("start");
-                console.log(button)
 
                 var counterobj = findCounter(newid);
                 startCounter(newid, counterobj);
@@ -59,6 +57,7 @@ function addMultipleListeners(buttons) {
                 moveCompletedTask(this);
             }
             postAjaxRequest(this, newid);
+
             changeButton(this, newid);
         });
       })(newid);
@@ -118,8 +117,9 @@ function moveCompletedTask(node) {
     }
     var completedTasks = document.getElementById("completed_tasks");
     var entry = node.parentNode;
-    var entryText = entry.firstChild;
-    console.log(entryText);
+    console.log(node.querySelector("span[class='task_name']").innerHTML);
+    var entryText = node.querySelector("span[class='task_name']");
+    entryText.className = "";
 
     while (entry.hasChildNodes()) {
         entry.removeChild(entry.firstChild);
@@ -174,16 +174,22 @@ Toggle stop and start buttons for timed tasks.
 */
 function changeButton(button, newid) {
 
+    var action = button.querySelector('span[id="task_action"]');
+    console.log(action);
+
     if (button.id.includes("start")) {
         button.id = "stop" + newid;
         button.name = "stop_timer";
-        button.innerHTML = "Stop activity";
+        // get the original html and then replace only the task_action.
+        // also need to check on the countdown timer because it's not counting down.
+
+        action.innerHTML = "Stop activity";
     }
     else if (button.id.includes("stop")) {
         button.id = "start" + newid;
         button.name = "start_timer";
-        button.innerHTML = "Start activity";
-
+        // button.innerHTML = "Start activity";
+        action.innerHTML = "Start activity";
     }
 }
 
@@ -313,7 +319,6 @@ function startCounter(newid, counterobj) {
 Stop counting down.
 */
 function stopCounter(newid) {
-    console.log(timer);
     timer.stop();
     var counterobj = findCounter(newid);
     var display = counterobj.counter;
