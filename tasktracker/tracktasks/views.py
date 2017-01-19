@@ -59,11 +59,8 @@ def mark_task_complete(request):
     Probably will move the latter two out later.
     """
 
-
-    if (request.method == 'POST' or request.is_ajax()) and 'selected_task' in request.POST:
+    if request.is_ajax():
         task_id = request.POST['selected_task']
-        # if 'name' in request.POST:
-        print(request.POST)
         name = request.POST['name']
         task = Task.objects.get(pk=task_id)
 
@@ -85,7 +82,6 @@ def mark_task_complete(request):
             # only the days attribute of a timedelta
             # will go negative.
             if task.remaining_time.days < 0:
-                print("less than or equal to zero")
                 task.complete()
 
         task.save()
@@ -98,57 +94,43 @@ class ModifyTaskView(LoginRequiredMixin, generic.UpdateView):
     """
     form_class=ModifyTaskForm
     template_name = 'tracktasks/modifytask.html'
+    model = Task
 
+    def get_absolute_url(self):
+        return reverse('modify task', kwargs={'pk': self.pk})
+
+    def get_success_url(self):
+        return reverse_lazy('tracktasks:manage tasks')
 
     def form_valid(self, form):
         form.instance.user = self.request.user
-
-        if form.instance.is_timed:
-            # convert from seconds to minutes
-            form.instance.total_time *=60
-            form.instance.remaining_time = form.instance.total_time
-
         return super(ModifyTaskView, self).form_valid(form)
 
-
     def get_initial(self):
-
         initial = super(ModifyTaskView, self).get_initial()
-        task = Task.objects.get(pk=self.request.POST['selected_task'])
-        initial['name'] = task.name
-        initial['date_type'] = task.date_type
-        initial['is_timed'] = task.is_timed
-        initial['date'] = task.date
-        initial['total_time'] = task.total_time
-        initial['recurring'] = task.recurring
         return initial
 
-    def get_object(self):
-        print(self.request.POST)
-        obj = Task.objects.get(pk=self.request.POST['selected_task'])
-        return obj;
-
-    def get_success_url(self):
-        return reverse_lazy('tracktasks:index')
 
 
 class CreateTaskView(LoginRequiredMixin, generic.CreateView):
     """
     Create a new task.
     """
+    model = Task
     form_class = CreateTaskForm
     template_name = 'tracktasks/createtask.html'
 
     def get_success_url(self):
         return reverse_lazy('tracktasks:index')
 
+    def get_initial(self):
+        initial = super(CreateTaskView, self).get_initial()
+        initial['date'] = timezone.now()
+        initial['date_type'] = "S"
+        return initial
+
     def form_valid(self, form):
         form.instance.user = self.request.user
-
-        if form.instance.is_timed:
-            # convert from seconds to minutes
-            form.instance.total_time *=60
-            form.instance.remaining_time = form.instance.total_time
 
         # add next recurrence for recurring tasks.
         if form.instance.recurring != 'N':

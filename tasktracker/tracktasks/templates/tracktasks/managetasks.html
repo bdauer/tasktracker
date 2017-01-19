@@ -16,7 +16,7 @@
         <h2>manage tasks</h2>
             {% for task in user_tasks %}
 
-            <form method="POST" action="{% url 'tracktasks:modify task' %}">
+            <form method="GET" action="{% url 'tracktasks:modify task' pk=task.id  %}">
                 {% csrf_token %}
                 <input type="hidden" value="{{ task.id }}" name="selected_task">
                 <button type="button submit" class="list-group-item class_entry">

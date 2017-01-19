@@ -4,9 +4,10 @@
 
 
 
-<form method="POST" action="{% url 'tracktasks:modify task' %}">
-    <input type="hidden" value="{{ task.id }}" name="selected_task">
+<form method="POST">
     {% csrf_token %}
+    <input type="hidden" value="{{ task.id }}" name="selected_task">
+
 
 
 {{ form.as_p }}
