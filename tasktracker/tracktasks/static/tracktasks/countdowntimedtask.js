@@ -1,13 +1,22 @@
-"use strict";
+// "use strict";
 
 /*
 This function sets up all of the timer buttons
 to find their respective counters when clicked.
 */
 function prepareTimerListeners() {
-
-    var buttons = document.getElementsByTagName('button')
-    addMultipleListeners(buttons);
+    // I tried changing this to use
+    // all buttons, but I ran into
+    // an issue with the listener only applying to the last button.
+    // I think this is related to closures.
+    // For now, it works. May want to revisit when I have more knowledge.
+    var buttons = document.querySelectorAll('button');
+    var startbuttons = document.querySelectorAll('button[id^="start"]');
+    var stopbuttons = document.querySelectorAll('button[id^="stop"]');
+    var untimedbuttons = document.querySelectorAll('button[id^="completed"]');
+    addMultipleListeners(startbuttons);
+    addMultipleListeners(stopbuttons);
+    addMultipleListeners(untimedbuttons);
 }
 
 /*
@@ -24,11 +33,13 @@ function addMultipleListeners(buttons) {
 
         button.addEventListener('click', function(evt) {
 
+
             evt.preventDefault();
 
 
             if (button.name.includes("start")) {
                 console.log("start");
+                console.log(button)
 
                 var counterobj = findCounter(newid);
                 startCounter(newid, counterobj);
@@ -82,33 +93,38 @@ function listenForZero(newid, counterobj) {
     };
 
 /*
+Creates a completed tasks list.
+*/
+function create_completed_tasks_list() {
+    var completedDiv = document.getElementById("completed_div");
+    var newh2 = document.createElement("h2");
+    var newUL = document.createElement("ul");
+    newh2.innerHTML = "completed tasks";
+    newUL.id = "completed_tasks";
+    completedDiv.appendChild(newh2);
+    completedDiv.appendChild(newUL);
+}
+
+/*
 Move a completed task
 ,reformatted,
 to the completed tasks list.
 */
 function moveCompletedTask(node) {
-
     // if completed_tasks doesn't exist,
     // create it.
     if (!document.getElementById("completed_tasks")) {
-        var completedDiv = document.getElementById("completed_div");
-        var newh2 = document.createElement("h2");
-        var newUL = document.createElement("ul");
-        newh2.innerHTML = "completed tasks";
-        newUL.id = "completed_tasks";
-        completedDiv.appendChild(newh2);
-        completedDiv.appendChild(newUL);
+        create_completed_tasks_list();
     }
-
     var completedTasks = document.getElementById("completed_tasks");
     var entry = node.parentNode;
     var entryText = entry.firstChild;
+    console.log(entryText);
+
     while (entry.hasChildNodes()) {
         entry.removeChild(entry.firstChild);
     }
 
-    // var newEntry = document.createElement("li");
-    // newEntry.appendChild(entryText);
     var newEntry = createLI(entryText);
     entry.parentNode.removeChild(entry);
     completedTasks.insertBefore(newEntry, completedTasks.childNodes[0]);
