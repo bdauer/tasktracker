@@ -44,8 +44,10 @@
         {% for task in still_due_tasks_list %}
             <form method="POST" action="{% url 'tracktasks:mark complete' %}">
                         {% csrf_token %}
-            <li>{{ task.name }} is due by {{ task.date|date:"l" }} the {{ task.date|date:"jS" }} of {{ task.date|date:"N" }}
-            <input type="hidden" value="{{ task.id }}" name="selected_task">
+            <li>{{ task.name }}<input type="hidden" value="{{ task.id }}" name="selected_task">
+
+                is due by {{ task.date|date:"l" }} the {{ task.date|date:"jS" }} of {{ task.date|date:"N" }}
+
 
             {% if task.is_timed %}
              remaining time: <span id="time{{ task.id }}">{{ task.remaining_time|format_timedelta }}</span>
@@ -71,8 +73,9 @@
     {% for task in overdue_tasks_list %}
         <form method="POST" action="{% url 'tracktasks:mark complete' %}">
                     {% csrf_token %}
-        <li>{{ task.name }} was due on {{ task.date|date:"l" }} the {{ task.date|date:"jS" }} of {{ task.date|date:"N" }}
+        <li>{{ task.name }}
         <input type="hidden" value="{{ task.id }}" name="selected_task">
+        was due on {{ task.date|date:"l" }} the {{ task.date|date:"jS" }} of {{ task.date|date:"N" }}
 
         {% if task.is_timed %}
          remaining time: <span id="time{{ task.id }}">{{ task.remaining_time|format_timedelta }}</span>
