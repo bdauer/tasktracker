@@ -1,0 +1,3 @@
+Hi {{ user }}!
+
+To activate your new account please go to {{ activation key }}.

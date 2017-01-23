@@ -157,3 +157,7 @@ LOGGING = {
 
 # celery settings
 CELERY_BROKER_URL = "amqp://"
+
+# django-registration settings
+
+ACCOUNT_ACTIVATION_DAYS = 7

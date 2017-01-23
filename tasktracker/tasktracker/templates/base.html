@@ -25,8 +25,8 @@
 
      {% url 'tracktasks:index' as index %}
      {% url 'tracktasks:create task' as create_task %}
-     {% url 'logout' as logout %}
-      {% url 'login' as login %}
+     {% url 'registration:auth_logout' as logout %}
+      {% url 'registration:auth_login' as login %}
       {% url 'tracktasks:manage tasks' as manage_tasks %}
      <nav class="navbar navbar-inverse">
         {% if user.is_authenticated %}
