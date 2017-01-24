@@ -75,3 +75,5 @@ target/
 *.p
 
 taskenv
+
+privatesettings.py
