@@ -14,7 +14,9 @@ import os
 import sys
 
 from celery.schedules import crontab
-from .privatesettings import emailhostusr, emailpw
+
+# store private settings here
+from .privatesettings import emailhostusr, emailpw, secretkey
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'ku$5sdla7jn^$96#508n!$%8sm=iq()m(#3o5w&th@&)$gfm6o'
+SECRET_KEY = secretkey
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
