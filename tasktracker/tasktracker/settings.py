@@ -14,6 +14,7 @@ import os
 import sys
 
 from celery.schedules import crontab
+from .privatesettings import emailhostusr, emailpw
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -161,3 +162,9 @@ CELERY_BROKER_URL = "amqp://"
 # django-registration settings
 
 ACCOUNT_ACTIVATION_DAYS = 7
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = emailhostusr
+EMAIL_HOST_PASSWORD = emailpw
+EMAIL_PORT = 587

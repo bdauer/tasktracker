@@ -20,5 +20,5 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^tracktasks/', include('tracktasks.urls', namespace='tracktasks')),
     # url(r'^', include('django.contrib.auth.urls')),
-    url(r'^accounts/', include('registration.backends.hmac.urls', namespace='registration')),
+    url(r'^accounts/', include('registration.backends.hmac.urls')),
 ]
