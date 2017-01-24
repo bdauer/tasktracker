@@ -31,7 +31,7 @@
      <nav class="navbar navbar-inverse">
         {% if user.is_authenticated %}
 
-        <p class="navbar-text">Hello, {{ user.get_short_name }}</p>
+        <p class="navbar-text">Hello, {{ user.get_username }}</p>
 
             {% if request.get_full_path != index %}
                 <a href="{{ index }}" type="button" class="btn btn-default">Today's Tasks</a>
