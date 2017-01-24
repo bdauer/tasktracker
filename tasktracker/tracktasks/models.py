@@ -30,13 +30,15 @@ class TaskManager(models.Manager):
             return self.filter(
                             date=date,
                             is_completed=True,
-                            date_type='S')
+                            date_type='S',
+                            user=request.user)
 
         elif not completed:
             return self.filter(
                             date=date,
                             is_completed=False,
-                            date_type='S')
+                            date_type='S',
+                            user=request.user)
 
     def completed_on(self, request, date_completed):
         """
@@ -44,7 +46,8 @@ class TaskManager(models.Manager):
         """
         return self.filter(
                         completed_date=date_completed,
-                        is_completed=True)
+                        is_completed=True,
+                        user=request.user)
 
     def still_due_on(self, request, duedate):
         """
@@ -53,7 +56,8 @@ class TaskManager(models.Manager):
         return self.filter(
                         date_type='D',
                         date__gte=duedate,
-                        is_completed=False)
+                        is_completed=False,
+                        user=request.user)
 
     def overdue_on(self, request, duedate):
         """
@@ -63,7 +67,8 @@ class TaskManager(models.Manager):
         # need to change datetime field to date field and deal with the fallout
         return self.filter(
                         date__lt=duedate,
-                        is_completed=False).order_by('-date')
+                        is_completed=False,
+                        user=request.user).order_by('-date')
 
 
     # This should also be moved to the Manager because
