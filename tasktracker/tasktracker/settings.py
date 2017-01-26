@@ -131,11 +131,13 @@ LOGIN_REDIRECT_URL = '/tracktasks/'
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-    'tasktracker/static',
-    'tracktasks/static',
+    # os.path.join(BASE_DIR, "static"),
+    # 'tasktracker/tasktracker/static',
+    # 'tasktracker/tracktasks/static',
 ]
+
 
 LOGGING = {
     'version': 1,
@@ -170,3 +172,16 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = emailhostusr
 EMAIL_HOST_PASSWORD = emailpw
 EMAIL_PORT = 587
+
+
+if DEBUG:
+    MIDDLEWARE += (
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+    )
+    INSTALLED_APPS += (
+        'debug_toolbar',
+    )
+    INTERNAL_IPS = ('127.0.0.1', )
+    DEBUG_TOOLBAR_CONFIG = {
+        'INTERCEPT_REDIRECTS': False,
+    }
