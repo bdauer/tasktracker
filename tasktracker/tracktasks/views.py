@@ -1,4 +1,5 @@
 import datetime
+import uuid
 
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect, JsonResponse
@@ -130,6 +131,7 @@ class CreateTaskView(LoginRequiredMixin, generic.CreateView):
         return initial
 
     def form_valid(self, form):
+
         form.instance.user = self.request.user
 
         if form.instance.is_timed:
@@ -137,7 +139,9 @@ class CreateTaskView(LoginRequiredMixin, generic.CreateView):
 
         # add next recurrence for recurring tasks.
         if form.instance.recurring != 'N':
+            form.instance.recurring_id = uuid.uuid4()
             first_task = form.save(commit=False)
+
             Task.add_next_recurring_date(first_task)
 
         return super(CreateTaskView, self).form_valid(form)
