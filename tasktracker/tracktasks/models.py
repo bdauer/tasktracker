@@ -30,14 +30,16 @@ class TaskManager(models.Manager):
                             date=date,
                             is_completed=True,
                             date_type='S',
-                            user=request.user)
+                            user=request.user,
+                            is_disabled=False)
 
         elif not completed:
             return self.filter(
                             date=date,
                             is_completed=False,
                             date_type='S',
-                            user=request.user)
+                            user=request.user,
+                            is_disabled=False)
 
     def completed_on(self, request, date_completed):
         """
@@ -46,7 +48,8 @@ class TaskManager(models.Manager):
         return self.filter(
                         completed_date=date_completed,
                         is_completed=True,
-                        user=request.user)
+                        user=request.user,
+                        is_disabled=False)
 
     def still_due_on(self, request, duedate):
         """
@@ -56,7 +59,8 @@ class TaskManager(models.Manager):
                         date_type='D',
                         date__gte=duedate,
                         is_completed=False,
-                        user=request.user)
+                        user=request.user,
+                        is_disabled=False)
 
     def overdue_on(self, request, duedate):
         """
@@ -67,6 +71,7 @@ class TaskManager(models.Manager):
         return self.filter(
                         date__lt=duedate,
                         is_completed=False,
+                        is_disabled=False,
                         user=request.user).order_by('-date')
 
 
@@ -90,10 +95,12 @@ class TaskManager(models.Manager):
         queryset_to_repeat = Task.objects.filter(date__exact=date_to_check,
                             user__profile__most_recent_login__gte=\
                             active_user_date,
-                            is_most_recent=True).exclude(recurring="N")
+                            is_most_recent=True,
+                            is_disabled=False).exclude(recurring="N")
 
         for task in queryset_to_repeat:
             task.add_next_recurring_date()
+            task.is_most_recent = False
 
 
 
@@ -128,6 +135,7 @@ class Task(models.Model):
     priority = models.DecimalField(default=0, max_digits=2, decimal_places=0)
 
     is_completed = models.BooleanField(default=False)
+    is_disabled = models.BooleanField(default=False)
     completed_date = models.DateField(null=True, blank=True)
 
     # Values are used for calculating a score.
@@ -197,7 +205,7 @@ class Task(models.Model):
         unchanged_fields = ['name', 'priority', 'completed_val',
                             'not_completed_cost', 'date_type',
                             'is_timed', 'recurring', 'total_time', 'user',
-                            'remaining_time', 'recurring_id']
+                            'remaining_time', 'recurring_id', 'is_most_recent']
 
         for field in unchanged_fields:
             old_field_value = getattr(self, field)
