@@ -1,6 +1,6 @@
 import datetime
 import calendar
-
+import uuid
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -18,8 +18,7 @@ class TaskManager(models.Manager):
 
     def def_queryset(self):
         return super(TaskManager,
-        self).get_queryset().filter(
-                            user=self.request.user).order_by('date')
+        self).get_queryset().order_by('date')
 
     def scheduled_for(self, request, date, completed=False):
         """
@@ -96,6 +95,100 @@ class TaskManager(models.Manager):
         for task in queryset_to_repeat:
             task.add_next_recurring_date()
 
+
+
+
+# Opted against inheritance for different types of tasks because
+# it doesn't translate well into a relational model.
+# might consider a one-to-one relationship for dealing with:
+# timed and recurring tasks.
+class Task(models.Model):
+    """
+    Represents a to-do task.
+    Fields:
+    name: the name of the task.
+    priority: the importance of a task.
+    is_completed: true if the task has been completed.
+
+    completed_val: the value for completing a task.
+    not_completed_cost: the cost of failing to complete a task.(positive num)
+
+    date_type: tells whether the task is scheduled on or due by the date field.
+    date: the date that a task is either scheduled for or due by.
+
+    start_time: the time at which a task was started.
+    remaining_time: the amount of time required to spend on a task.
+    anchor_date: used for calculating recurrence. See inline comment.
+    recurring: how frequently a task recurs.
+    """
+    objects = TaskManager()
+    user = models.ForeignKey(User, null=True)
+
+    name = models.CharField(max_length=200)
+    priority = models.DecimalField(default=0, max_digits=2, decimal_places=0)
+
+    is_completed = models.BooleanField(default=False)
+    completed_date = models.DateField(null=True, blank=True)
+
+    # Values are used for calculating a score.
+    completed_val = models.IntegerField('completed value', default=0)
+    not_completed_cost = models.IntegerField('not completed value', default=0)
+
+    # Because separate scheduled and due dates were leading to repeated,
+    # longer queries I've opted for a date field and a date_type field.
+    DATE_TYPES = (('S', 'scheduled for'),
+                  ('D', 'due by'),
+                 )
+    date_type = models.CharField('date type', max_length=1,
+                                 choices=DATE_TYPES, default='D')
+    date = models.DateField()
+
+    is_timed = models.BooleanField(default=False)
+    total_time = models.DurationField('total time', null=True, blank=True)
+
+    # The following fields only apply to timed events.
+    # start_time is recorded at the start of a task. When the time is stopped,
+    # the total difference is subtracted from remaining_time. When it is
+    # restarted, start_time is overwritten.
+    # In the future it may be worth saving start/stop times and the task for
+    # analysis.
+    start_time = models.DateTimeField('start time', null=True, blank=True)
+    remaining_time =\
+        models.DurationField('remaining time', null=True, blank=True)
+
+    # The recurring day depends on the anchor date. e.g. weekly recurring
+    # happens on the same day of the week. Monthly recurring happens
+    # on the same day of the week, of the closest week of the month (probably).
+    anchor_date = models.DateField('anchor date', auto_now_add=True)
+    FREQUENCY = (('N', 'not recurring'),
+                 ('D', 'daily'),
+                 ('W', 'weekly'),
+                 ('B', 'biweekly'),
+                 ('M', 'monthly'),
+                )
+    recurring = models.CharField(max_length=1,
+                                 choices=FREQUENCY,
+                                 default='N')
+    # for tracking related recurring tasks
+    recurring_id = models.UUIDField('recurring id', default=uuid.uuid4)
+    # for recurring tasks.
+    is_most_recent = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+
+    def set_recurring_id(self):
+        self.recurring_id = self.id
+
+    def complete(self):
+        """
+        Mark a task as complete
+        and set its completed date.
+        """
+        self.is_completed = True
+        self.completed_date = timezone.now()
+
     def add_next_recurring_date(self):
         """
         create and return a new recurrance of a recurring task.
@@ -103,7 +196,8 @@ class TaskManager(models.Manager):
         new_task = Task()
         unchanged_fields = ['name', 'priority', 'completed_val',
                             'not_completed_cost', 'date_type',
-                            'is_timed', 'recurring', 'total_time', 'user','remaining_time']
+                            'is_timed', 'recurring', 'total_time', 'user',
+                            'remaining_time', 'recurring_id']
 
         for field in unchanged_fields:
             old_field_value = getattr(self, field)
@@ -184,89 +278,3 @@ class TaskManager(models.Manager):
                 new_date = newcal[week_num - 1][day_num]
 
             return new_date
-
-
-# Opted against inheritance for different types of tasks because
-# it doesn't translate well into a relational model.
-# might consider a one-to-one relationship for dealing with:
-# timed and recurring tasks.
-class Task(models.Model):
-    """
-    Represents a to-do task.
-    Fields:
-    name: the name of the task.
-    priority: the importance of a task.
-    is_completed: true if the task has been completed.
-
-    completed_val: the value for completing a task.
-    not_completed_cost: the cost of failing to complete a task.(positive num)
-
-    date_type: tells whether the task is scheduled on or due by the date field.
-    date: the date that a task is either scheduled for or due by.
-
-    start_time: the time at which a task was started.
-    remaining_time: the amount of time required to spend on a task.
-    anchor_date: used for calculating recurrence. See inline comment.
-    recurring: how frequently a task recurs.
-    """
-    objects = TaskManager()
-    user = models.ForeignKey(User, null=True)
-
-    name = models.CharField(max_length=200)
-    priority = models.DecimalField(default=0, max_digits=2, decimal_places=0)
-
-    is_completed = models.BooleanField(default=False)
-    completed_date = models.DateField(null=True, blank=True)
-
-    # Values are used for calculating a score.
-    completed_val = models.IntegerField('completed value', default=0)
-    not_completed_cost = models.IntegerField('not completed value', default=0)
-
-    # Because separate scheduled and due dates were leading to repeated,
-    # longer queries I've opted for a date field and a date_type field.
-    DATE_TYPES = (('S', 'scheduled for'),
-                  ('D', 'due by'),
-                 )
-    date_type = models.CharField('date type', max_length=1,
-                                 choices=DATE_TYPES, default='D')
-    date = models.DateField()
-
-    is_timed = models.BooleanField(default=False)
-    total_time = models.DurationField('total time', null=True, blank=True)
-
-    # The following fields only apply to timed events.
-    # start_time is recorded at the start of a task. When the time is stopped,
-    # the total difference is subtracted from remaining_time. When it is
-    # restarted, start_time is overwritten.
-    # In the future it may be worth saving start/stop times and the task for
-    # analysis.
-    start_time = models.DateTimeField('start time', null=True, blank=True)
-    remaining_time =\
-        models.DurationField('remaining time', null=True, blank=True)
-
-    # The recurring day depends on the anchor date. e.g. weekly recurring
-    # happens on the same day of the week. Monthly recurring happens
-    # on the same day of the week, of the closest week of the month (probably).
-    anchor_date = models.DateField('anchor date', auto_now_add=True)
-    FREQUENCY = (('N', 'not recurring'),
-                 ('D', 'daily'),
-                 ('W', 'weekly'),
-                 ('B', 'biweekly'),
-                 ('M', 'monthly'),
-                )
-    recurring = models.CharField(max_length=1,
-                                 choices=FREQUENCY,
-                                 default='N')
-    # for recurring tasks.
-    is_most_recent = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.name
-
-    def complete(self):
-        """
-        Mark a task as complete
-        and set its completed date.
-        """
-        self.is_completed = True
-        self.completed_date = timezone.now()
