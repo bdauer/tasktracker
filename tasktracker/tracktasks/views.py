@@ -51,7 +51,7 @@ class ManageTasksView(LoginRequiredMixin, generic.ListView):
     context_object_name = 'user_tasks'
 
     def get_queryset(self):
-        return Task.objects.filter(is_completed=False, user=self.request.user)
+        return Task.objects.active_tasks(self.request.user)
 
 @login_required
 def mark_task_complete(request):
@@ -104,7 +104,13 @@ class ModifyTaskView(LoginRequiredMixin, generic.UpdateView):
         return reverse_lazy('tracktasks:manage tasks')
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
+        instance = form.instance
+        instance.user = self.request.user
+
+        if (instance.is_disabled == True) and (instance.recurring != 'N'):
+            Task.objects.disable_recurrences(instance.recurring_id)
+
+
         return super(ModifyTaskView, self).form_valid(form)
 
     def get_initial(self):

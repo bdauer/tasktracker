@@ -20,6 +20,15 @@ class TaskManager(models.Manager):
         return super(TaskManager,
         self).get_queryset().order_by('date')
 
+    def active_tasks(self, user):
+        """
+        Return all active tasks for the provided user.
+        """
+        return self.filter(
+                            is_completed=False,
+                            user=user,
+                            is_disabled=False).order_by('date')
+
     def scheduled_for(self, request, date, completed=False):
         """
         Return the tasks scheduled for the datetime provided.
@@ -31,7 +40,7 @@ class TaskManager(models.Manager):
                             is_completed=True,
                             date_type='S',
                             user=request.user,
-                            is_disabled=False)
+                            is_disabled=False).order_by('date')
 
         elif not completed:
             return self.filter(
@@ -39,7 +48,7 @@ class TaskManager(models.Manager):
                             is_completed=False,
                             date_type='S',
                             user=request.user,
-                            is_disabled=False)
+                            is_disabled=False).order_by('date')
 
     def completed_on(self, request, date_completed):
         """
@@ -49,7 +58,7 @@ class TaskManager(models.Manager):
                         completed_date=date_completed,
                         is_completed=True,
                         user=request.user,
-                        is_disabled=False)
+                        is_disabled=False).order_by('date')
 
     def still_due_on(self, request, duedate):
         """
@@ -60,7 +69,7 @@ class TaskManager(models.Manager):
                         date__gte=duedate,
                         is_completed=False,
                         user=request.user,
-                        is_disabled=False)
+                        is_disabled=False).order_by('date')
 
     def overdue_on(self, request, duedate):
         """
@@ -103,7 +112,21 @@ class TaskManager(models.Manager):
             task.is_most_recent = False
 
 
+    def disable_recurrences(self, shared_id):
+        """
+        Find all future recurrences of a task
+        using the provided id
+        and set them as disabled.
+        """
 
+        recurrences = Task.objects.filter(recurring_id=shared_id,
+                            is_completed=False,
+                            date__gt=datetime.datetime.today())
+        for task in recurrences:
+            import ipdb
+            ipdb.set_trace()
+            task.is_disabled = True
+            task.save()
 
 # Opted against inheritance for different types of tasks because
 # it doesn't translate well into a relational model.
