@@ -16,4 +16,4 @@ PeriodicTask.objects.create(
     )
 @app.tasks(bind=True)
 def recurring_updates():
-    Task.create_daily_recurring_tasks()
+    Task.objects.create_daily_recurring_tasks()
