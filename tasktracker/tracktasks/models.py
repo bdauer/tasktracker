@@ -24,10 +24,37 @@ class TaskManager(models.Manager):
         """
         Return all active tasks for the provided user.
         """
-        return self.filter(
-                            is_completed=False,
-                            user=user,
-                            is_disabled=False).order_by('date')
+        # one queryset for all tasks that aren't recurring.
+
+        unique_ids = set()
+        latest_recurring = list()
+
+        recurrences = self.filter(user=user,
+                                is_disabled=False,
+                                ).exclude(recurring='N')
+
+        # construct set of unique recurring ids
+        for recurrence in recurrences:
+            recurring_id = recurrence.recurring_id
+            if recurring_id not in unique_ids:
+                unique_ids.add(recurring_id)
+
+        # get earliest id and add it to the list
+        for recurring_id in unique_ids:
+            earliest = self.filter(recurring_id=recurring_id,
+                    is_completed=False).earliest('date')
+            latest_recurring.append(earliest.id)
+
+        recurring_query = self.filter(pk__in=latest_recurring)
+
+        non_recurring_query = self.filter(
+                                        is_completed=False,
+                                        user=user,
+                                        is_disabled=False,
+                                        recurring='N'
+                                        )
+
+        return (recurring_query | non_recurring_query).order_by('date')
 
     def scheduled_for(self, request, date, completed=False):
         """
@@ -83,9 +110,6 @@ class TaskManager(models.Manager):
                         is_disabled=False,
                         user=request.user).order_by('-date')
 
-
-    # This should also be moved to the Manager because
-    # it acts on the whole table.
     def create_daily_recurring_tasks():
         """
         Create a new recurrence
@@ -112,19 +136,26 @@ class TaskManager(models.Manager):
             task.is_most_recent = False
 
 
-    def disable_recurrences(self, shared_id):
+    def get_future_recurrences(self, shared_id, date):
         """
-        Find all future recurrences of a task
-        using the provided id
-        and set them as disabled.
+        Get all future recurrences of a recurring task.
         """
 
         recurrences = Task.objects.filter(recurring_id=shared_id,
                             is_completed=False,
-                            date__gt=datetime.datetime.today())
+                            date__gt=date)
+        return recurrences
+
+    def disable_recurrences(self, shared_id, date):
+        """
+        Set all future recurrences of a task
+        using the provided id
+        and set them as disabled.
+        """
+
+        recurrences = get_future_recurrences(self, shared_id, date)
+
         for task in recurrences:
-            import ipdb
-            ipdb.set_trace()
             task.is_disabled = True
             task.save()
 
@@ -201,7 +232,8 @@ class Task(models.Model):
                                  choices=FREQUENCY,
                                  default='N')
     # for tracking related recurring tasks
-    recurring_id = models.UUIDField('recurring id', default=uuid.uuid4)
+    NULL_RECURRING = '00000000-0000-0000-0000-000000000000'
+    recurring_id = models.UUIDField('recurring id', default=NULL_RECURRING)
     # for recurring tasks.
     is_most_recent = models.BooleanField(default=False)
 
