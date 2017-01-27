@@ -20,17 +20,18 @@ class TaskManager(models.Manager):
         return super(TaskManager,
         self).get_queryset().order_by('date')
 
-    def active_tasks(self, user):
+    def unique_recurring(self, user):
         """
-        Return all active tasks for the provided user.
+        Return a queryset containing
+        the most recent incomplete instances
+        of each group of active recurring tasks
+        for the provided user.
         """
-        # one queryset for all tasks that aren't recurring.
-
         unique_ids = set()
         latest_recurring = list()
 
         recurrences = self.filter(user=user,
-                                is_disabled=False,
+                                is_disabled=False
                                 ).exclude(recurring='N')
 
         # construct set of unique recurring ids
@@ -45,14 +46,26 @@ class TaskManager(models.Manager):
                     is_completed=False).earliest('date')
             latest_recurring.append(earliest.id)
 
-        recurring_query = self.filter(pk__in=latest_recurring)
+        return self.filter(pk__in=latest_recurring)
 
-        non_recurring_query = self.filter(
-                                        is_completed=False,
-                                        user=user,
-                                        is_disabled=False,
-                                        recurring='N'
-                                        )
+    def non_recurring(self, user):
+        """
+        Return a queryset containing
+        all active, non-recurring, incomplete task instances.
+        """
+        return self.filter(
+                        is_completed=False,
+                        user=user,
+                        is_disabled=False,
+                        recurring='N'
+                        )
+
+    def active_tasks(self, user):
+        """
+        Return all active tasks for the provided user.
+        """
+        recurring_query = self.unique_recurring(user)
+        non_recurring_query = self.non_recurring(user)
 
         return (recurring_query | non_recurring_query).order_by('date')
 
@@ -125,7 +138,8 @@ class TaskManager(models.Manager):
         active_user_date = timezone.now() - datetime.timedelta(days=7)
         date_to_check = datetime.date.today() + datetime.timedelta(days=1)
 
-        queryset_to_repeat = Task.objects.filter(date__exact=date_to_check,
+        queryset_to_repeat = Task.objects.filter(
+                            date__exact=date_to_check,
                             user__profile__most_recent_login__gte=\
                             active_user_date,
                             is_most_recent=True,
@@ -141,7 +155,8 @@ class TaskManager(models.Manager):
         Get all future recurrences of a recurring task.
         """
 
-        recurrences = Task.objects.filter(recurring_id=shared_id,
+        recurrences = Task.objects.filter(
+                            recurring_id=shared_id,
                             is_completed=False,
                             date__gt=date)
         return recurrences
