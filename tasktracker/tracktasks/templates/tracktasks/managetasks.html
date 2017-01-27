@@ -31,7 +31,11 @@
                         {% elif task.date_type == 'D' %}
                             due by:
                         {% endif %}
-                    {{ task.date|date:"SHORT_DATE_FORMAT" }}.<br>
+                    {{ task.date|date:"SHORT_DATE_FORMAT" }}<br>
+                    {% if task.recurring != 'N' %}
+                        recurring {{ task.get_recurring_display }}
+                        <br>
+                    {% endif %}
                 </button>
             </form>
 
