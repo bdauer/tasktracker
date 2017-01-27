@@ -8,9 +8,10 @@
 
 {% block content %}
 {% load timedelta_filter %}
-{% if user_tasks %}
+
 <div class="row justify-content-center">
     <div id="user_tasks_div" class="col-xs-8 justify-content-center">
+        {% if user_tasks|length > 0 %}
 
         <div class="list-group">
         <h2>manage tasks</h2>
@@ -41,10 +42,13 @@
 
             {% endfor %}
         </div>
+        {% else %}
+            You have no active tasks.
+            {% endif %}
     </div>
 </div>
 
-{% endif %}
+
 {% endblock %}
 {% block javascript %}
 {% load static %}
