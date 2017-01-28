@@ -255,10 +255,6 @@ class Task(models.Model):
     def __str__(self):
         return self.name
 
-
-    def set_recurring_id(self):
-        self.recurring_id = self.id
-
     def complete(self):
         """
         Mark a task as complete
