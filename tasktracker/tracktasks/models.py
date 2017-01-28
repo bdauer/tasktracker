@@ -246,7 +246,7 @@ class Task(models.Model):
     recurring = models.CharField(max_length=1,
                                  choices=FREQUENCY,
                                  default='N')
-    # for tracking related recurring tasks
+    # for tracking related recurring tasks. If not recurring, use NULL_RECURRING
     NULL_RECURRING = '00000000-0000-0000-0000-000000000000'
     recurring_id = models.UUIDField('recurring id', default=NULL_RECURRING)
     # for recurring tasks.
@@ -279,6 +279,7 @@ class Task(models.Model):
 
         new_task.date = self._assign_recurring_date()
         new_task.save()
+
         return new_task
 
     def _assign_recurring_date(self):
@@ -298,17 +299,12 @@ class Task(models.Model):
             new_date = old_date + datetime.timedelta(days=14)
         elif self.recurring == 'M':
 
-            # deal with end of year issues.
-            if old_date.month == 12:
-                new_month = 1
-                new_year = old_date.year + 1
-            else:
-                new_month = old_date.month + 1
-                new_year = old_date.year
+            new_month, new_year = self._check_for_year_change(old_date)
 
-            oldcal = calendar.monthdatescalendar(old_date.year,
-                                                 old_date.month)
-            newcal = calendar.monthdatescalendar(new_year,
+            recur_cal = calendar.Calendar(0)
+            oldcal = recur_cal.monthdatescalendar(old_date.year,
+                                                    old_date.month)
+            newcal = recur_cal.monthdatescalendar(new_year,
                                                  new_month)
             # get the original week and day numbers
             for week in oldcal:
@@ -316,39 +312,93 @@ class Task(models.Model):
                     week_num = oldcal.index(week)
                     day_num = week.index(old_date)
 
-            new_date = _get_new_date(new_month, newcal, week_num, day_num)
+            new_date = self._get_new_date(new_month, new_year, oldcal,
+                                          newcal, week_num, day_num)
 
         return new_date
 
-        def _get_new_date(new_month, newcal, week_num, day_num):
-            """
-            Return the next recurring date for monthly recurrence.
+    def _get_new_date(self, new_month, new_year, oldcal,
+                      newcal, week_num, day_num):
+        """
+        Return the next recurring date for monthly recurrence.
 
-            Checks that the week isn't out of index.
-            Checks that the month is correct.
+        Checks that the week isn't out of index.
+        Checks that the month is correct.
 
-            params:
-            new_month: the numeric value of the new task's month.
-            newcal: a monthdatescalendar object for the new month.
-            week_num: the original week number.
-            day_num: the original number for the day of the week.
-            """
-            try:
-                new_date = newcal[week_num][day_num]
+        params:
+        new_month: the numeric value of the new task's month.
+        newcal: a monthdatescalendar object for the new month.
+        week_num: the original week number.
+        day_num: the original number for the day of the week.
+        """
+
+        try:
+            new_date = newcal[week_num][day_num]
+        except IndexError:
             # the error can happen
             # when the number of weeks differs
             # between the old and new month.
-            except IndexError:
-                week_num -= 1
-                new_date = newcal[week_num][day_num]
+            week_num -= 1
+            new_date = newcal[week_num][day_num]
 
-            # Because the monthdatescalendar
-            # includes a week from the preceding and following month:
-            # ensure we're looking at the correct month.
-            if new_date.month < new_month:
-                new_date = newcal[week_num + 1][day_num]
+        week_num = self._correct_week_num_offset(oldcal, newcal,
+                                                 day_num, week_num)
 
-            elif new_date.month > new_month:
-                new_date = newcal[week_num - 1][day_num]
+        # Because the monthdatescalendar
+        # includes a week from the preceding and following month:
+        # ensure we're looking at the correct month.
+        if  new_date.month < new_month:
+            week_num += 1
 
-            return new_date
+        if new_date.month > new_month:
+            week_num -= 1
+
+        new_date = newcal[week_num][day_num]
+        return new_date
+
+    def _correct_week_num_offset(self, oldcal, newcal, day_num, week_num):
+        """
+        Return a week_num with an offset
+        based on the differences in weekday values
+        between two Calendar.monthdatescalendar objects.
+
+        Explanation:
+        The monthdatescalendar includes
+        a week from the prior month.
+
+        In some cases a weekday
+        from the current month
+        can occur in that week.
+
+        When this happens in one and only one of the passed monthdatescalendars,
+        we need to create an offset to account for the difference.
+        """
+        old_first_week_day = oldcal[0][day_num]
+        old_third_week_day = oldcal[2][day_num]
+        new_first_week_day = newcal[0][day_num]
+        new_third_week_day = newcal[2][day_num]
+        old_offset = (old_first_week_day.month == old_third_week_day.month)
+        new_offset = (new_first_week_day.month == new_third_week_day.month)
+
+        if old_offset and not new_offset:
+            week_num += 1
+
+        elif new_offset and not old_offset:
+            week_num -= 1
+
+        return week_num
+
+    def _check_for_year_change(self, old_date):
+        """
+        Return the new month and year,
+        one month advanced from the old date.
+
+        """
+        if old_date.month == 12:
+            new_month = 1
+            new_year = old_date.year + 1
+        else:
+            new_month = old_date.month + 1
+            new_year = old_date.year
+
+        return new_month, new_year
