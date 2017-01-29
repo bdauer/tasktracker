@@ -16,7 +16,7 @@ class TaskManager(models.Manager):
     For specific methods see their respective docstrings.
     """
 
-    def def_queryset(self):
+    def get_queryset(self):
         return super(TaskManager,
         self).get_queryset().order_by('date')
 
@@ -48,6 +48,7 @@ class TaskManager(models.Manager):
 
         return self.filter(pk__in=latest_recurring)
 
+
     def non_recurring(self, user):
         """
         Return a queryset containing
@@ -74,25 +75,16 @@ class TaskManager(models.Manager):
         Return the tasks scheduled for the datetime provided.
         completed: indicates whether to return completed or unfinished tasks.
         """
-        if completed:
-            return self.filter(
-                            date=date,
-                            is_completed=True,
-                            date_type='S',
-                            user=request.user,
-                            is_disabled=False).order_by('date')
-
-        elif not completed:
-            return self.filter(
-                            date=date,
-                            is_completed=False,
-                            date_type='S',
-                            user=request.user,
-                            is_disabled=False).order_by('date')
+        return self.filter(
+                        date=date,
+                        is_completed=completed,
+                        date_type='S',
+                        user=request.user,
+                        is_disabled=False).order_by('date')
 
     def completed_on(self, request, date_completed):
         """
-        Return all tasks completed today.
+        Return all tasks completed on date_completed.
         """
         return self.filter(
                         completed_date=date_completed,
@@ -163,7 +155,7 @@ class TaskManager(models.Manager):
 
     def disable_recurrences(self, shared_id, date):
         """
-        Set all future recurrences of a task
+        Get all future recurrences of a task
         using the provided id
         and set them as disabled.
         """
@@ -392,7 +384,6 @@ class Task(models.Model):
         """
         Return the new month and year,
         one month advanced from the old date.
-
         """
         if old_date.month == 12:
             new_month = 1
