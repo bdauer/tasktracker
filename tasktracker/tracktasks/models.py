@@ -63,8 +63,7 @@ class TaskManager(models.Manager):
                         is_completed=False,
                         user=user,
                         is_disabled=False,
-                        recurring='N'
-                        )
+                        recurring='N')
 
     def active_tasks(self, user):
         """
