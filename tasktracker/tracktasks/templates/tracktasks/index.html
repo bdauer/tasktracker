@@ -100,8 +100,7 @@
 </div>
 <div id="overdue_div" class="col-xs-8 justify-content-center">
     {% if overdue_tasks_list %}
-    <h3>Overdue tasks</h3>
-    <ul>
+    <h3>overdue tasks</h3>
     {% for task in overdue_tasks_list %}
         <form method="POST" action="{% url 'tracktasks:mark complete' %}">
                     {% csrf_token %}
@@ -147,7 +146,7 @@
 <div id=completed_div class="col-xs-8 justify-content-center">
     <div class="list-group text-center">
 {% if completed_tasks_list %}
-    <h2>completed tasks</h2>
+    <h3>completed tasks</h3>
     <ul id="completed_tasks">
         {% for task in completed_tasks_list %}
             <li class="list-group-item">{{  task.name  }}</li>
