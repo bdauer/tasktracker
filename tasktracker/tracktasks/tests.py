@@ -119,6 +119,110 @@ class TaskTestCases(TestCase):
 
         self.assertEqual(next_day_task.name, self.fixed_task_end_of_year.name)
 
+class TaskManagerTestCases(TestCase):
+
+    def setup(self):
+        self.user = User.objects.create(username="ben",
+                                    password="secure")
+
+        self.user2 = User.objects.create(username="intruder",
+                                         password="fuzzypickles")
+
+
+    def test_unique_recurring(self):
+        """
+        Ensure that this only gets the most recent incomplete instances
+        for each recurring task.
+
+        Need to create recurring tasks for today, earlier, later.
+
+        Should create a separate test that runs the same check
+        after tests have been repeated.
+        """
+        pass
+    def test_unique_recurring_completed(self):
+        """
+        Same as before, but have tasks marked as completed and ensure they don't show.
+        """
+
+    def test_non_recurring(self):
+        """
+        Ensure that this gets all of the non-recurring, incomplete tasks.
+        """
+        pass
+
+    def test_active_tasks(self):
+        """
+        test that all non-disabled tasks are returned.
+        """
+        pass
+
+    def test_scheduled_for(self):
+        """
+        Test that for a given date, gets all tasks scheduled for that date.
+
+        need tasks scheduled for different dates.
+        """
+        pass
+
+    def test_completed_on(self):
+        """
+        Ensure that it returns all tasks completed on a given day
+
+        and not tasks given on a different day.
+        """
+        pass
+
+    def test_still_due_on(self):
+        """
+        Ensure that it returns tasks that are still due for a given date,
+        and not scheduled tasks still due.
+
+        Need future scheduled and due tasks.
+        """
+        pass
+
+    def test_overdue_on(self):
+        """
+        Ensure that it returns tasks overdue on a given date,
+        including scheduled tasks.
+        """
+        pass
+
+
+    def test_create_daily_recurring_tasks(self):
+        """
+        Ensure that for every recurring task, the most recent recurring instance
+        is used to make a new instance.
+
+        Will need several different recurring tasks.
+        """
+        pass
+
+    def test_get_future_recurrences(self):
+        """
+        Test that for a given shared_id, it returns all recurrences
+        after the provided date.
+
+        Should also run after marking a recurring task as complete.
+        """
+        pass
+
+    def test_disable_recurrences(self):
+        """
+        Test that running disable_recurrences disables all future instances
+        of a recurring task.
+        """
+        pass
+
+
+
+
+# for the TaskManager methods, build data to check different cases.
+# should include three of every category that could get pulled.
+# they can overlap.
+# if you have new tests in the future, don't add new setup data.
+# either stick with what you've got, or create a new TestCase class
 
 #views tests
     #  def test_index(self):
