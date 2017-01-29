@@ -69,43 +69,29 @@ class TaskManager(models.Manager):
         """
         Return all active tasks for the provided user.
         """
-
         recurring_query = self.unique_recurring(user)
-
         non_recurring_query = self.non_recurring(user)
-
         return (recurring_query | non_recurring_query).order_by('date')
 
-    def scheduled_for(self, request, date, completed=False):
+    def scheduled_for(self, user, date, completed=False):
         """
         Return the tasks scheduled for the datetime provided.
         completed: indicates whether to return completed or unfinished tasks.
         """
-        # need similar to above,
-        # separate recurring and non_recurring queries
-        # so that only the earliest incomplete is shown.
-        active_tasks = self.active_tasks(request.user)
-
+        active_tasks = self.active_tasks(user)
         return active_tasks.filter(date=date)
 
-        return self.filter(
-                        date=date,
-                        is_completed=completed,
-                        date_type='S',
-                        user=request.user,
-                        is_disabled=False).order_by('date')
-
-    def completed_on(self, request, date_completed):
+    def completed_on(self, user, date_completed):
         """
         Return all tasks completed on date_completed.
         """
         return self.filter(
                         completed_date=date_completed,
                         is_completed=True,
-                        user=request.user,
+                        user=user,
                         is_disabled=False).order_by('date')
 
-    def still_due_on(self, request, duedate):
+    def still_due_on(self, user, duedate):
         """
         Return the non-recurring tasks due after the datetime provided.
         """
@@ -113,10 +99,10 @@ class TaskManager(models.Manager):
                         date_type='D',
                         date__gte=duedate,
                         is_completed=False,
-                        user=request.user,
+                        user=user,
                         is_disabled=False).order_by('date')
 
-    def overdue_on(self, request, duedate):
+    def overdue_on(self, user, duedate):
         """
         Return all past due tasks.
         """
@@ -126,7 +112,7 @@ class TaskManager(models.Manager):
                         date__lt=duedate,
                         is_completed=False,
                         is_disabled=False,
-                        user=request.user).order_by('-date')
+                        user=user).order_by('-date')
 
     def create_daily_recurring_tasks():
         """
