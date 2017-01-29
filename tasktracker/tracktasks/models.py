@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.http import HttpRequest
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class TaskManager(models.Manager):
@@ -31,8 +32,7 @@ class TaskManager(models.Manager):
         latest_recurring = list()
 
         recurrences = self.filter(user=user,
-                                is_disabled=False
-                                ).exclude(recurring='N')
+                                is_disabled=False).exclude(recurring='N')
 
         # construct set of unique recurring ids
         for recurrence in recurrences:
@@ -42,8 +42,13 @@ class TaskManager(models.Manager):
 
         # get earliest id and add it to the list
         for recurring_id in unique_ids:
-            earliest = self.filter(recurring_id=recurring_id,
-                    is_completed=False).earliest('date')
+            recurring_group = self.filter(recurring_id=recurring_id)
+
+            try:
+                earliest = recurring_group.filter(is_completed=False).earliest('date')
+            except ObjectDoesNotExist:
+                earliest = recurring_group.filter(is_completed=True).latest('date')
+
             latest_recurring.append(earliest.id)
 
         return self.filter(pk__in=latest_recurring)
@@ -65,7 +70,9 @@ class TaskManager(models.Manager):
         """
         Return all active tasks for the provided user.
         """
+
         recurring_query = self.unique_recurring(user)
+
         non_recurring_query = self.non_recurring(user)
 
         return (recurring_query | non_recurring_query).order_by('date')
@@ -75,6 +82,13 @@ class TaskManager(models.Manager):
         Return the tasks scheduled for the datetime provided.
         completed: indicates whether to return completed or unfinished tasks.
         """
+        # need similar to above,
+        # separate recurring and non_recurring queries
+        # so that only the earliest incomplete is shown.
+        active_tasks = self.active_tasks(request.user)
+
+        return active_tasks.filter(date=date)
+
         return self.filter(
                         date=date,
                         is_completed=completed,
