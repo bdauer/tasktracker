@@ -1,5 +1,5 @@
 import datetime
-
+import uuid
 from django.test import TestCase, RequestFactory
 from .models import Task
 from django.contrib.auth.models import User
@@ -121,35 +121,140 @@ class TaskTestCases(TestCase):
 
 class TaskManagerTestCases(TestCase):
 
-    def setup(self):
+    def setUp(self):
         self.user = User.objects.create(username="ben",
                                     password="secure")
 
         self.user2 = User.objects.create(username="intruder",
                                          password="fuzzypickles")
 
+        one_day = datetime.timedelta(days=1)
+        # if you add more recurring tasks, update the number.
+        num_recurring = 3
+        Task.objects.create(name="recurring yesterday",
+                            recurring="D",
+                            recurring_id=uuid.uuid4(),
+                            user=self.user,
+                            date_type="S",
+                            date=(timezone.now() - one_day),
+                            is_disabled=False,
+                            pk=1)
+
+        Task.objects.create(name="recurring today",
+                            recurring="D",
+                            recurring_id=uuid.uuid4(),
+                            user=self.user,
+                            date_type="S",
+                            date=timezone.now(),
+                            is_disabled=False,
+                            pk=2)
+
+        Task.objects.create(name="recurring tomorrow",
+                            recurring="D",
+                            recurring_id=uuid.uuid4(),
+                            user=self.user,
+                            date_type="S",
+                            date=(timezone.now() + one_day),
+                            is_disabled=False,
+                            pk=3)
+
+        Task.objects.create(name="nonrecurring yesterday",
+                            recurring="N",
+                            user=self.user,
+                            date_type="S",
+                            date=(timezone.now() - one_day),
+                            is_disabled=False,
+                            pk=4)
+
+        Task.objects.create(name="nonrecurring today",
+                            recurring="N",
+                            user=self.user,
+                            date_type="S",
+                            date=timezone.now(),
+                            is_disabled=False,
+                            pk=5)
+
+        Task.objects.create(name="nonrecurring tomorrow",
+                            recurring="N",
+                            user=self.user,
+                            date_type="S",
+                            date=(timezone.now() + one_day),
+                            is_disabled=False,
+                            pk=6)
 
     def test_unique_recurring(self):
         """
-        Ensure that this only gets the most recent incomplete instances
+        Ensure that unique_recurring only gets
+        the most recent incomplete instances
         for each recurring task.
 
         Need to create recurring tasks for today, earlier, later.
 
         Should create a separate test that runs the same check
-        after tests have been repeated.
+        after some tasks have been completed.
         """
+        recurring_tasks = Task.objects.exclude(recurring="N")
+
+        recurring_ids = set()
+
+        for task in recurring_tasks:
+            recurring_ids.add(task.recurring_id)
+            task.add_next_recurring_date()
+
+        for recurring_id in recurring_ids:
+            recurring_group = Task.objects.filter(recurring_id=recurring_id)
+
+
+            recur_list = Task.objects.unique_recurring(self.user)
+
+            # check against the original recurrence.
+            if recurring_group[0] in recur_list:
+                continue
+            else:
+                self.fail(recurring_group[0])
+
+            self.assertEqual(len(recur_list), num_recurring)
         pass
+
     def test_unique_recurring_completed(self):
         """
-        Same as before, but have tasks marked as completed and ensure they don't show.
+        Same as before,
+        but check against tasks marked as completed and ensure they don't show.
         """
+        recurring_tasks = Task.objects.exclude(recurring="N")
+
+        recurring_ids = set()
+
+        for task in recurring_tasks:
+            recurring_ids.add(task.recurring_id)
+            task.add_next_recurring_date()
+            task.is_completed = True
+            task.save()
+
+        for recurring_id in recurring_ids:
+            recurring_group = Task.objects.filter(recurring_id=recurring_id)
+            recur_list = Task.objects.unique_recurring(self.user)
+
+            # check against the newer recurrence.
+            if recurring_group[1] in recur_list:
+                continue
+            else:
+                self.fail(recurring_group[0])
+
+            self.assertEqual(len(recur_list), num_recurring)
+        pass
 
     def test_non_recurring(self):
         """
         Ensure that this gets all of the non-recurring, incomplete tasks.
         """
-        pass
+        one_day = datetime.timedelta(days=1)
+        non_recurring = ["<Task: nonrecurring yesterday>",
+                         "<Task: nonrecurring today>",
+                         "<Task: nonrecurring tomorrow>"]
+
+        self.assertQuerysetEqual(Task.objects.non_recurring(self.user),
+                                 non_recurring)
 
     def test_active_tasks(self):
         """
