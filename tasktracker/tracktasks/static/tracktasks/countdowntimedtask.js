@@ -137,6 +137,7 @@ with the provided text.
 function createLI(text) {
 
     var newEntry = document.createElement("li");
+    newEntry.className += " list-group-item";
     newEntry.appendChild(text);
     return newEntry;
 }
