@@ -44,8 +44,15 @@ class TaskManager(models.Manager):
         for recurring_id in unique_ids:
             recurring_group = self.filter(recurring_id=recurring_id)
 
+# this following block is where I'm running afoul when I need a later incomplete task.
+# maybe take an optional date param. For each recurring task group,
+# if a date was provided, include all incomplete tasks through that date.
+# will need other logic when failing is possible, so that failable tasks are excluded
+# from this rule.
+
             try:
                 earliest = recurring_group.filter(is_completed=False).earliest('date')
+
             except ObjectDoesNotExist:
                 earliest = recurring_group.filter(is_completed=True).latest('date')
 
@@ -95,26 +102,22 @@ class TaskManager(models.Manager):
         """
         Return the non-recurring tasks due after the datetime provided.
         """
-        return self.filter(
-                        date_type='D',
-                        date__gte=duedate,
-                        is_completed=False,
-                        user=user,
-                        is_disabled=False).order_by('date')
+        active_tasks = self.active_tasks(user)
+        return active_tasks.filter(date_type='D',
+                                   date__gte=duedate).order_by('date')
 
     def overdue_on(self, user, duedate):
         """
         Return all past due tasks.
         """
-        # datetime issues coming back to haunt me.
-        # need to change datetime field to date field and deal with the fallout
-        return self.filter(
+        active_tasks = self.active_tasks(user)
+        return active_tasks.filter(
                         date__lt=duedate,
                         is_completed=False,
                         is_disabled=False,
                         user=user).order_by('-date')
 
-    def create_daily_recurring_tasks():
+    def create_daily_recurring_tasks(self):
         """
         Create a new recurrence
         for all most recent recurring tasks
@@ -125,7 +128,6 @@ class TaskManager(models.Manager):
         It checks for tomorrow to avoid timezone conflicts
         for those whose time zone is near the update time.
         """
-
         active_user_date = timezone.now() - datetime.timedelta(days=7)
         date_to_check = datetime.date.today() + datetime.timedelta(days=1)
 
@@ -141,26 +143,22 @@ class TaskManager(models.Manager):
             task.is_most_recent = False
 
 
-    def get_future_recurrences(self, shared_id, date):
+    def get_task_group_incompletes(self, shared_id):
         """
         Get all future recurrences of a recurring task.
         """
-
         recurrences = Task.objects.filter(
                             recurring_id=shared_id,
-                            is_completed=False,
-                            date__gt=date)
+                            is_completed=False)
         return recurrences
 
-    def disable_recurrences(self, shared_id, date):
+    def disable_recurrences(self, shared_id):
         """
         Get all future recurrences of a task
         using the provided id
         and set them as disabled.
         """
-
-        recurrences = get_future_recurrences(self, shared_id, date)
-
+        recurrences = self.get_task_group_incompletes(shared_id)
         for task in recurrences:
             task.is_disabled = True
             task.save()
