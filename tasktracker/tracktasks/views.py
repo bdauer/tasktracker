@@ -108,7 +108,7 @@ class ModifyTaskView(LoginRequiredMixin, generic.UpdateView):
         instance.user = self.request.user
 
         if (instance.is_disabled == True) and (instance.recurring != 'N'):
-            Task.objects.disable_recurrences(instance.recurring_id, instance.date)
+            Task.objects.disable_recurrences(instance.recurring_id)
 
         return super(ModifyTaskView, self).form_valid(form)
 
