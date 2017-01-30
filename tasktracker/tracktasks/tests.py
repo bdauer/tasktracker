@@ -268,60 +268,66 @@ class TaskManagerTestCases(TestCase):
 
     def test_unique_recurring(self):
         """
-        Ensure that unique_recurring only gets
-        the most recent incomplete instances
-        for each recurring task.
+        Test for correct behavior with completed and incomplete tasks,
+        when multiple is True and when multiple is False.
         """
-        recurring_tasks = Task.objects.exclude(recurring="N")
+        recurring_tasks = ["<Task: recurring yesterday>",
+                     "<Task: recurring tomorrow>",
+                     "<Task: recurring today>",
+                     "<Task: dueby recurring yesterday>",
+                     "<Task: dueby recurring tomorrow>",
+                     "<Task: dueby recurring today>"]
 
-        recurring_ids = set()
+        recurring_tasks_multi = ["<Task: recurring yesterday>",
+                     "<Task: recurring tomorrow>",
+                     "<Task: recurring today>",
+                     "<Task: dueby recurring yesterday>",
+                     "<Task: dueby recurring tomorrow>",
+                     "<Task: dueby recurring today>",
+                     "<Task: recurring yesterday>",
+                      "<Task: recurring tomorrow>",
+                      "<Task: recurring today>",
+                      "<Task: dueby recurring yesterday>",
+                      "<Task: dueby recurring tomorrow>",
+                      "<Task: dueby recurring today>"]
 
-        for task in recurring_tasks:
-            recurring_ids.add(task.recurring_id)
+        recurring_qs = Task.objects.unique_recurring(self.user)
+
+        # test with multiple false
+        recurring_qs = Task.objects.unique_recurring(self.user)
+        self.assertQuerysetEqual(recurring_qs, recurring_tasks, ordered=False)
+        # test with multiple true
+        recurring_qs_multi = Task.objects.unique_recurring(self.user,
+                                                           multiple=True)
+        self.assertQuerysetEqual(recurring_qs_multi, recurring_tasks,
+                                ordered=False)
+        # add new recurrence
+        for task in recurring_qs:
             task.add_next_recurring_date()
 
-        for recurring_id in recurring_ids:
-            recurring_group = Task.objects.filter(recurring_id=recurring_id)
+        # test with multiple false
+        recurring_qs = Task.objects.unique_recurring(self.user)
+        self.assertQuerysetEqual(recurring_qs, recurring_tasks, ordered=False)
+        # test with multiple true
+        recurring_qs_multi = Task.objects.unique_recurring(self.user,
+                                                           multiple=True)
+        self.assertQuerysetEqual(recurring_qs_multi, recurring_tasks_multi,
+                                ordered=False)
 
-
-            recur_list = Task.objects.unique_recurring(self.user)
-
-            # check against the original recurrence.
-            if recurring_group[0] in recur_list:
-                continue
-            else:
-                self.fail(recurring_group[0])
-
-            self.assertEqual(len(recur_list), num_recurring)
-        pass
-
-    def test_unique_recurring_completed(self):
-        """
-        Same as before,
-        but check against tasks marked as completed and ensure they don't show.
-        """
-        recurring_tasks = Task.objects.exclude(recurring="N")
-
-        recurring_ids = set()
-
-        for task in recurring_tasks:
-            recurring_ids.add(task.recurring_id)
-            task.add_next_recurring_date()
+        # complete original tasks
+        for task in recurring_qs:
             task.is_completed = True
+            task.completed_date = timezone.now()
             task.save()
 
-        for recurring_id in recurring_ids:
-            recurring_group = Task.objects.filter(recurring_id=recurring_id)
-            recur_list = Task.objects.unique_recurring(self.user)
-
-            # check against the newer recurrence.
-            if recurring_group[1] in recur_list:
-                continue
-            else:
-                self.fail(recurring_group[0])
-
-            self.assertEqual(len(recur_list), num_recurring)
-        pass
+        # test with multiple false
+        recurring_qs = Task.objects.unique_recurring(self.user)
+        self.assertQuerysetEqual(recurring_qs, recurring_tasks, ordered=False)
+        # test with multiple true
+        recurring_qs_multi = Task.objects.unique_recurring(self.user,
+                                                           multiple=True)
+        self.assertQuerysetEqual(recurring_qs_multi, recurring_tasks,
+                                ordered=False)
 
     def test_non_recurring(self):
         """
