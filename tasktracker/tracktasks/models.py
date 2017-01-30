@@ -12,54 +12,69 @@ from django.core.exceptions import ObjectDoesNotExist
 class TaskManager(models.Manager):
     """
     Override for default Task manager.
-    Gets only the current user's tasks by default. Orders tasks by date.
-
     For specific methods see their respective docstrings.
     """
-
     def get_queryset(self):
         return super(TaskManager,
         self).get_queryset().order_by('date')
 
-    def unique_recurring(self, user):
+    def unique_recurring(self, user, multiple=False):
         """
         Return a queryset containing
         the most recent incomplete instances
         of each group of active recurring tasks
         for the provided user.
         """
-        unique_ids = set()
-        latest_recurring = list()
+        unique_ids = self._get_unique_recurring_ids(user)
+        latest_recurring_ids = self._get_latest_recurring(unique_ids, multiple)
+        latest_recurring = self.filter(pk__in=latest_recurring_ids)
+        return latest_recurring
 
+    def _get_unique_recurring_ids(self, user):
+        """
+        Return a set of unique recurring_ids
+        for active recurring tasks.
+        """
+        unique_ids = set()
         recurrences = self.filter(user=user,
                                 is_disabled=False).exclude(recurring='N')
-
         # construct set of unique recurring ids
         for recurrence in recurrences:
             recurring_id = recurrence.recurring_id
             if recurring_id not in unique_ids:
                 unique_ids.add(recurring_id)
+        return(unique_ids)
 
-        # get earliest id and add it to the list
-        for recurring_id in unique_ids:
+    def _get_latest_recurring(self, unique_ids, multiple=False):
+        """
+        Return a list of the latest recurring instances.
+        If multiple is True, try to return multiple instances of the same task.
+        If multiple is False, return only one instance per task.
+        """
+        latest_recurring = set()
+
+        for recurring_id in list(unique_ids):
             recurring_group = self.filter(recurring_id=recurring_id)
 
-# this following block is where I'm running afoul when I need a later incomplete task.
-# maybe take an optional date param. For each recurring task group,
-# if a date was provided, include all incomplete tasks through that date.
-# will need other logic when failing is possible, so that failable tasks are excluded
-# from this rule.
+            if multiple:
+                candidates = recurring_group.filter(is_completed=False)
+                if len(candidates) != 0:
+                    for candidate in candidates:
+                        latest_recurring.add(candidate.id)
+                else:
+                    candidate = recurring_group.filter(
+                                            is_completed=True).latest('date')
+                    latest_recurring.add(candidate.id)
 
-            try:
-                earliest = recurring_group.filter(is_completed=False).earliest('date')
-
-            except ObjectDoesNotExist:
-                earliest = recurring_group.filter(is_completed=True).latest('date')
-
-            latest_recurring.append(earliest.id)
-
-        return self.filter(pk__in=latest_recurring)
-
+            elif not multiple:
+                try:
+                    candidate = recurring_group.filter(
+                        is_completed=False).earliest('date')
+                except ObjectDoesNotExist:
+                    candidate = recurring_group.filter(
+                        is_completed=True).latest('date')
+                latest_recurring.add(candidate.id)
+        return latest_recurring
 
     def non_recurring(self, user):
         """
@@ -72,11 +87,11 @@ class TaskManager(models.Manager):
                         is_disabled=False,
                         recurring='N')
 
-    def active_tasks(self, user):
+    def active_tasks(self, user, multiple=False):
         """
         Return all active tasks for the provided user.
         """
-        recurring_query = self.unique_recurring(user)
+        recurring_query = self.unique_recurring(user, multiple)
         non_recurring_query = self.non_recurring(user)
         return (recurring_query | non_recurring_query).order_by('date')
 
@@ -85,7 +100,7 @@ class TaskManager(models.Manager):
         Return the tasks scheduled for the datetime provided.
         completed: indicates whether to return completed or unfinished tasks.
         """
-        active_tasks = self.active_tasks(user)
+        active_tasks = self.active_tasks(user, multiple=True)
         return active_tasks.filter(date=date)
 
     def completed_on(self, user, date_completed):
@@ -110,7 +125,7 @@ class TaskManager(models.Manager):
         """
         Return all past due tasks.
         """
-        active_tasks = self.active_tasks(user)
+        active_tasks = self.active_tasks(user, multiple=True)
         return active_tasks.filter(
                         date__lt=duedate,
                         is_completed=False,
