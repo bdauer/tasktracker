@@ -33,6 +33,7 @@ class IndexView(LoginRequiredMixin, generic.ListView):
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
+        request = self.request
         data['daily_tasks_list'] = Task.objects.scheduled_for(request.user, datetime.date.today())
         data['still_due_tasks_list'] = Task.objects.still_due_on(request.user,
                                                          datetime.date.today())
