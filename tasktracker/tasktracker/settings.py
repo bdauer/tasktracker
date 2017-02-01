@@ -13,10 +13,9 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 import sys
 
-from celery.schedules import crontab
-
 # store private settings here
-from .privatesettings import emailhostusr, emailpw, secretkey
+from .privatesettings import (emailhostusr, emailpw,
+                            emailport, secretkey, debug, default_db)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,9 +28,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = secretkey
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = debug
 
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -84,10 +82,7 @@ WSGI_APPLICATION = 'tasktracker.wsgi.application'
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    'default': default_db
 }
 
 
@@ -171,7 +166,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = emailhostusr
 EMAIL_HOST_PASSWORD = emailpw
-EMAIL_PORT = 587
+EMAIL_PORT = emailport
 
 
 if DEBUG:
