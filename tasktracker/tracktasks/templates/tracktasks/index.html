@@ -56,6 +56,7 @@
 </div>
 <div id="still_due_div" class="col-xs-8 justify-content-center">
     {% if still_due_tasks_list %}
+    <div class="list-group text-center">
     <h3>tasks due later</h3>
 
         {% for task in still_due_tasks_list %}
@@ -98,8 +99,10 @@
 
     {% endif %}
 </div>
+</div>
 <div id="overdue_div" class="col-xs-8 justify-content-center">
     {% if overdue_tasks_list %}
+    <div class="list-group text-center">
     <h3>overdue tasks</h3>
     {% for task in overdue_tasks_list %}
         <form method="POST" action="{% url 'tracktasks:mark complete' %}">
@@ -137,6 +140,7 @@
 </form>
     {% endfor %}
     {% endif %}
+</div>
 </div>
 
 {% else %}
